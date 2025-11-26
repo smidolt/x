@@ -17,6 +17,8 @@ from tqdm import tqdm
 import torch
 
 os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION_IMPORT", "1")
+# Avoid flash-attn requirement if not installed
+os.environ.setdefault("FLASH_ATTENTION_SKIP", "1")
 
 from transformers import (
     AutoConfig,
@@ -73,34 +75,53 @@ class VLMRunner:
                     model_source,
                     torch_dtype=dtype,
                     trust_remote_code=True,
-                    attn_implementation="eager",
+                    attn_implementation="sdpa",
                     use_flash_attention_2=False,
                 )
             return processor, model
 
         # Llava Next models
         if "llava" in model_type or "llava" in lower_source:
+            # Try LlavaNext first, fallback to Llava
             try:
                 from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
 
                 processor = LlavaNextProcessor.from_pretrained(model_source, trust_remote_code=True)
-                model = LlavaNextForConditionalGeneration.from_pretrained(
-                    model_source,
-                    torch_dtype=dtype,
-                    trust_remote_code=True,
-                    attn_implementation="flash_attention_2",
-                )
+                try:
+                    model = LlavaNextForConditionalGeneration.from_pretrained(
+                        model_source,
+                        torch_dtype=dtype,
+                        trust_remote_code=True,
+                        attn_implementation="flash_attention_2",
+                    )
+                except Exception:
+                    model = LlavaNextForConditionalGeneration.from_pretrained(
+                        model_source,
+                        torch_dtype=dtype,
+                        trust_remote_code=True,
+                        attn_implementation="sdpa",
+                        use_flash_attention_2=False,
+                    )
                 return processor, model
             except Exception:
-                from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
+                from transformers import LlavaProcessor, LlavaForConditionalGeneration
 
-                processor = LlavaNextProcessor.from_pretrained(model_source, trust_remote_code=True)
-                model = LlavaNextForConditionalGeneration.from_pretrained(
-                    model_source,
-                    torch_dtype=dtype,
-                    trust_remote_code=True,
-                    attn_implementation="eager",
-                )
+                processor = LlavaProcessor.from_pretrained(model_source, trust_remote_code=True)
+                try:
+                    model = LlavaForConditionalGeneration.from_pretrained(
+                        model_source,
+                        torch_dtype=dtype,
+                        trust_remote_code=True,
+                        attn_implementation="flash_attention_2",
+                    )
+                except Exception:
+                    model = LlavaForConditionalGeneration.from_pretrained(
+                        model_source,
+                        torch_dtype=dtype,
+                        trust_remote_code=True,
+                        attn_implementation="sdpa",
+                        use_flash_attention_2=False,
+                    )
                 return processor, model
 
         # Fallback generic causal LM
