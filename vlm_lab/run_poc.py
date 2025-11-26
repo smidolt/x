@@ -52,7 +52,12 @@ class VLMRunner:
     def __init__(self, cfg: ModelConfig, device: torch.device) -> None:
         self.cfg = cfg
         self.device = device
-        dtype = torch.float16 if device.type in {"cuda", "mps"} else torch.float32
+        if device.type == "cuda" and torch.cuda.is_bf16_supported():
+            dtype = torch.bfloat16
+        elif device.type in {"cuda", "mps"}:
+            dtype = torch.float16
+        else:
+            dtype = torch.float32
         model_source = _resolve_model_source(cfg.model_id)
         self.processor, self.model = self._load_model_and_processor(model_source, dtype)
         self.model.to(self.device, dtype=dtype)
@@ -237,6 +242,7 @@ class VLMRunner:
         gen_kwargs = {
             "max_new_tokens": self.cfg.max_new_tokens,
             "temperature": self.cfg.temperature,
+            "do_sample": False,  # greedy to avoid NaN probs on some ckpts
         }
 
         start = time.time()
