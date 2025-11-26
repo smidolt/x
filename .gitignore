@@ -21,8 +21,6 @@ myenv1/
 
 # Local data and outputs
 output/
-data/input/*
-!data/input/.gitkeep
 
 # VLM lab artifacts
 vlm_lab/results/
