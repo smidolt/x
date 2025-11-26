@@ -17,6 +17,7 @@ from tqdm import tqdm
 import torch
 
 os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION_IMPORT", "1")
+os.environ.setdefault("FLASH_ATTENTION_SKIP", "1")
 
 from transformers import (
     AutoImageProcessor,
@@ -54,14 +55,15 @@ class VLMRunner:
 
     def _load_model_and_processor(self, model_source: str, dtype: torch.dtype):
         lower_source = model_source.lower()
-        # Phi-3 Vision uses causal LM head; force eager attention to avoid flash-attn dependency
+        # Phi-3 Vision uses causal LM head; force sdpa/eager to avoid flash-attn dependency
         if "phi-3" in lower_source:
             processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained(
                 model_source,
                 torch_dtype=dtype,
                 trust_remote_code=True,
-                attn_implementation="eager",
+                attn_implementation="sdpa",
+                use_flash_attention_2=False,
             )
             return processor, model
 
@@ -74,6 +76,7 @@ class VLMRunner:
                 model_source,
                 torch_dtype=dtype,
                 trust_remote_code=True,
+                attn_implementation="eager",
             )
             return processor, model
 
