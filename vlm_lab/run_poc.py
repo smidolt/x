@@ -209,9 +209,30 @@ class VLMRunner:
     def generate(self, image: Image.Image) -> Tuple[str, Dict[str, float]]:
         prompt = self.cfg.prompt.strip()
 
-        # Qwen2-VL requires chat template with explicit image token
         model_type = getattr(self.model.config, "model_type", "").lower()
+        # Qwen2-VL chat template
         if "qwen2_vl" in model_type or "qwen2vl" in model_type or "qwen2" in model_type:
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "image": image},
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ]
+            chat_prompt = self.processor.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+            )
+            inputs = self.processor(
+                text=[chat_prompt],
+                images=[image],
+                return_tensors="pt",
+            )
+        # Phi-3 Vision also needs explicit <image> tag in chat template
+        elif "phi3" in model_type or "phi-3" in model_type or "phi3v" in model_type:
             messages = [
                 {
                     "role": "user",
