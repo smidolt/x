@@ -243,17 +243,20 @@ class VLMRunner:
                 }
             ]
             chat_template_fn = None
-            if hasattr(self.processor, "apply_chat_template"):
-                chat_template_fn = self.processor.apply_chat_template
-            elif hasattr(getattr(self.processor, "tokenizer", None), "apply_chat_template"):
-                chat_template_fn = self.processor.tokenizer.apply_chat_template  # type: ignore[attr-defined]
+            if getattr(self.processor, "chat_template", None):
+                chat_template_fn = getattr(self.processor, "apply_chat_template", None)
+            elif getattr(getattr(self.processor, "tokenizer", None), "chat_template", None):
+                chat_template_fn = getattr(self.processor.tokenizer, "apply_chat_template", None)  # type: ignore[attr-defined]
 
             if chat_template_fn:
-                chat_prompt = chat_template_fn(
-                    messages,
-                    add_generation_prompt=True,
-                    tokenize=False,
-                )
+                try:
+                    chat_prompt = chat_template_fn(
+                        messages,
+                        add_generation_prompt=True,
+                        tokenize=False,
+                    )
+                except Exception:
+                    chat_prompt = f"<|user|>\n<|image_0|>\n{prompt}<|end|>\n<|assistant|>\n"
             else:
                 # Phi-3 prompt format expects explicit image placeholder
                 chat_prompt = f"<|user|>\n<|image_0|>\n{prompt}<|end|>\n<|assistant|>\n"
