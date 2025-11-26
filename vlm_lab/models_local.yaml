@@ -1,0 +1,11 @@
+candidates:
+  - name: qwen-vl-mini
+    model_id: Qwen/Qwen2-VL-2B-Instruct
+    prompt: |
+      You are an invoice extraction agent. Read the page image carefully and return data as JSON with keys:
+      meta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals),
+      items (array of description, quantity, unit_price, amount, currency),
+      notes (string array).
+      Only return valid JSON.
+    max_new_tokens: 64
+    temperature: 0.2

@@ -26,13 +26,10 @@ os.environ.setdefault("ATTN_IMPLEMENTATION", "eager")
 
 from transformers import (
     AutoConfig,
-    AutoImageProcessor,
     AutoModelForCausalLM,
-    AutoProcessor,
     AutoModelForVision2Seq,
-    AutoTokenizer,
+    AutoProcessor,
 )
-from transformers.utils import is_flash_attn_2_available
 
 
 def _resolve_model_source(model_id: str) -> str:
@@ -80,7 +77,6 @@ class VLMRunner:
             # Force non-flash attention everywhere to avoid missing dependency crashes
             return {
                 "attn_implementation": "eager",
-                "use_flash_attention_2": False,
                 "torch_dtype": dtype,
                 "config": config,
             }
@@ -94,14 +90,37 @@ class VLMRunner:
                     trust_remote_code=True,
                     **_attn_kwargs(),
                 )
-            except Exception:
+            except TypeError:
                 # Some Phi-3 remote code ignores attn_implementation; retry with explicit flags
                 model = AutoModelForCausalLM.from_pretrained(
                     model_source,
                     trust_remote_code=True,
                     attn_implementation="eager",
-                    use_flash_attention_2=False,
-                    use_flash_attention=False,
+                    torch_dtype=dtype,
+                )
+            return processor, model
+
+        # Qwen2-VL family
+        qwen2_vl_hint = (
+            "qwen2_vl" in model_type
+            or "qwen2vl" in model_type
+            or "qwen2vl" in lower_source
+            or ("qwen" in lower_source and "vl" in lower_source)
+            or "qwen2vl" in config.__class__.__name__.lower()
+        )
+        if qwen2_vl_hint:
+            processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
+            try:
+                model = AutoModelForVision2Seq.from_pretrained(
+                    model_source,
+                    trust_remote_code=True,
+                    **_attn_kwargs(),
+                )
+            except TypeError:
+                model = AutoModelForVision2Seq.from_pretrained(
+                    model_source,
+                    trust_remote_code=True,
+                    attn_implementation="eager",
                     torch_dtype=dtype,
                 )
             return processor, model
@@ -130,13 +149,11 @@ class VLMRunner:
                         trust_remote_code=True,
                         **_attn_kwargs(),
                     )
-                except Exception:
+                except TypeError:
                     model = LlavaNextForConditionalGeneration.from_pretrained(
                         model_source,
                         trust_remote_code=True,
                         attn_implementation="eager",
-                        use_flash_attention_2=False,
-                        use_flash_attention=False,
                         torch_dtype=dtype,
                     )
                 return processor, model
@@ -149,13 +166,11 @@ class VLMRunner:
                         trust_remote_code=True,
                         **_attn_kwargs(),
                     )
-                except Exception:
+                except TypeError:
                     model = LlavaForConditionalGeneration.from_pretrained(
                         model_source,
                         trust_remote_code=True,
                         attn_implementation="eager",
-                        use_flash_attention_2=False,
-                        use_flash_attention=False,
                         torch_dtype=dtype,
                     )
                 return processor, model
@@ -168,13 +183,11 @@ class VLMRunner:
                     trust_remote_code=True,
                     **_attn_kwargs(),
                 )
-            except Exception:
+            except TypeError:
                 model = AutoModelForVision2Seq.from_pretrained(
                     model_source,
                     trust_remote_code=True,
                     attn_implementation="eager",
-                    use_flash_attention_2=False,
-                    use_flash_attention=False,
                     torch_dtype=dtype,
                 )
             return processor, model
