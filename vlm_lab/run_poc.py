@@ -216,14 +216,16 @@ class VLMRunner:
                     ],
                 }
             ]
-            text_inputs = self.processor.apply_chat_template(
+            chat_prompt = self.processor.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
-                tokenize=True,
+                tokenize=False,
+            )
+            inputs = self.processor(
+                text=[chat_prompt],
+                images=[image],
                 return_tensors="pt",
             )
-            vision_inputs = self.processor(images=[image], return_tensors="pt")
-            inputs = {**text_inputs, **vision_inputs}
         else:
             inputs = self.processor(
                 images=image,
