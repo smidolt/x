@@ -21,7 +21,7 @@ os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION_IMPORT", "1")
 os.environ.setdefault("FLASH_ATTENTION_SKIP", "1")
 os.environ.setdefault("USE_FLASH_ATTENTION_2", "0")
 os.environ.setdefault("USE_FLASH_ATTENTION", "0")
-os.environ.setdefault("ATTN_IMPLEMENTATION", "sdpa")
+os.environ.setdefault("ATTN_IMPLEMENTATION", "eager")
 
 from transformers import (
     AutoConfig,
@@ -66,10 +66,12 @@ class VLMRunner:
         lower_source = model_source.lower()
 
         def _attn_kwargs(force_sdpa: bool = False) -> Dict[str, object]:
-            if not force_sdpa and is_flash_attn_2_available():
-                return {"attn_implementation": "flash_attention_2", "torch_dtype": dtype}
-            # Explicitly disable flash-attn to avoid missing dependency crashes
-            return {"attn_implementation": "sdpa", "use_flash_attention_2": False, "torch_dtype": dtype}
+            # Force non-flash attention everywhere to avoid missing dependency crashes
+            return {
+                "attn_implementation": "eager" if force_sdpa else "sdpa",
+                "use_flash_attention_2": False,
+                "torch_dtype": dtype,
+            }
 
         # Phi-3 Vision
         if "phi3" in model_type or "phi-3" in lower_source:
@@ -94,7 +96,10 @@ class VLMRunner:
             except Exception:
                 # Fallback to generic Llava classes if available in this transformers build
                 try:
-                    from transformers import LlavaForConditionalGeneration
+                    from transformers import (
+                        LlavaForConditionalGeneration,
+                        LlavaNextForConditionalGeneration,
+                    )
                 except Exception:
                     model = AutoModelForVision2Seq.from_pretrained(
                         model_source,
@@ -102,11 +107,18 @@ class VLMRunner:
                         **_attn_kwargs(force_sdpa=True),
                     )
                 else:
-                    model = LlavaForConditionalGeneration.from_pretrained(
-                        model_source,
-                        trust_remote_code=True,
-                        **_attn_kwargs(force_sdpa=True),
-                    )
+                    try:
+                        model = LlavaNextForConditionalGeneration.from_pretrained(
+                            model_source,
+                            trust_remote_code=True,
+                            **_attn_kwargs(force_sdpa=True),
+                        )
+                    except Exception:
+                        model = LlavaForConditionalGeneration.from_pretrained(
+                            model_source,
+                            trust_remote_code=True,
+                            **_attn_kwargs(force_sdpa=True),
+                        )
             return processor, model
 
         # Fallback generic causal LM
