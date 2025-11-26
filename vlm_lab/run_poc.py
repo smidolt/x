@@ -69,6 +69,10 @@ class VLMRunner:
                 setattr(config, attr, False)
         if hasattr(config, "attn_implementation"):
             config.attn_implementation = "eager"
+        # Global guards against flash-attn toggles
+        os.environ.setdefault("HF_USE_FLASH_ATTENTION_2", "0")
+        os.environ.setdefault("PYTORCH_ENABLE_FLASH_SDP", "0")
+        os.environ.setdefault("PYTORCH_ENABLE_MEM_EFFICIENT_SDP", "0")
         model_type = getattr(config, "model_type", "").lower()
         lower_source = model_source.lower()
 
@@ -84,16 +88,79 @@ class VLMRunner:
         # Phi-3 Vision
         if "phi3" in model_type or "phi-3" in lower_source:
             processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
-            model = AutoModelForCausalLM.from_pretrained(
-                model_source,
-                trust_remote_code=True,
-                **_attn_kwargs(),
-            )
+            try:
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_source,
+                    trust_remote_code=True,
+                    **_attn_kwargs(),
+                )
+            except Exception:
+                # Some Phi-3 remote code ignores attn_implementation; retry with explicit flags
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_source,
+                    trust_remote_code=True,
+                    attn_implementation="eager",
+                    use_flash_attention_2=False,
+                    use_flash_attention=False,
+                    torch_dtype=dtype,
+                )
             return processor, model
 
         # Llava Next models
         if "llava" in model_type or "llava" in lower_source:
-            # AutoProcessor + AutoModelForVision2Seq work for Llava v1.5/v1.6/Next
+            # Try explicit Llava classes first
+            try:
+                from transformers import (
+                    LlavaForConditionalGeneration,
+                    LlavaNextForConditionalGeneration,
+                    LlavaNextProcessor,
+                    LlavaProcessor,
+                )
+            except Exception:
+                LlavaForConditionalGeneration = None  # type: ignore
+                LlavaNextForConditionalGeneration = None  # type: ignore
+                LlavaNextProcessor = None  # type: ignore
+                LlavaProcessor = None  # type: ignore
+
+            if LlavaNextProcessor and LlavaNextForConditionalGeneration:
+                processor = LlavaNextProcessor.from_pretrained(model_source, trust_remote_code=True)
+                try:
+                    model = LlavaNextForConditionalGeneration.from_pretrained(
+                        model_source,
+                        trust_remote_code=True,
+                        **_attn_kwargs(),
+                    )
+                except Exception:
+                    model = LlavaNextForConditionalGeneration.from_pretrained(
+                        model_source,
+                        trust_remote_code=True,
+                        attn_implementation="eager",
+                        use_flash_attention_2=False,
+                        use_flash_attention=False,
+                        torch_dtype=dtype,
+                    )
+                return processor, model
+
+            if LlavaProcessor and LlavaForConditionalGeneration:
+                processor = LlavaProcessor.from_pretrained(model_source, trust_remote_code=True)
+                try:
+                    model = LlavaForConditionalGeneration.from_pretrained(
+                        model_source,
+                        trust_remote_code=True,
+                        **_attn_kwargs(),
+                    )
+                except Exception:
+                    model = LlavaForConditionalGeneration.from_pretrained(
+                        model_source,
+                        trust_remote_code=True,
+                        attn_implementation="eager",
+                        use_flash_attention_2=False,
+                        use_flash_attention=False,
+                        torch_dtype=dtype,
+                    )
+                return processor, model
+
+            # AutoProcessor + AutoModelForVision2Seq fallback
             processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
             try:
                 model = AutoModelForVision2Seq.from_pretrained(
@@ -102,31 +169,14 @@ class VLMRunner:
                     **_attn_kwargs(),
                 )
             except Exception:
-                # Fallback to generic Llava classes if available in this transformers build
-                try:
-                    from transformers import (
-                        LlavaForConditionalGeneration,
-                        LlavaNextForConditionalGeneration,
-                    )
-                except Exception:
-                    model = AutoModelForVision2Seq.from_pretrained(
-                        model_source,
-                        trust_remote_code=True,
-                        **_attn_kwargs(),
-                    )
-                else:
-                    try:
-                        model = LlavaNextForConditionalGeneration.from_pretrained(
-                            model_source,
-                            trust_remote_code=True,
-                            **_attn_kwargs(),
-                        )
-                    except Exception:
-                        model = LlavaForConditionalGeneration.from_pretrained(
-                            model_source,
-                            trust_remote_code=True,
-                            **_attn_kwargs(),
-                        )
+                model = AutoModelForVision2Seq.from_pretrained(
+                    model_source,
+                    trust_remote_code=True,
+                    attn_implementation="eager",
+                    use_flash_attention_2=False,
+                    use_flash_attention=False,
+                    torch_dtype=dtype,
+                )
             return processor, model
 
         # Fallback generic causal LM
