@@ -20,6 +20,7 @@ os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION_IMPORT", "1")
 os.environ.setdefault("FLASH_ATTENTION_SKIP", "1")
 
 from transformers import (
+    AutoConfig,
     AutoImageProcessor,
     AutoModelForCausalLM,
     AutoProcessor,
@@ -54,9 +55,12 @@ class VLMRunner:
         self.model.eval()
 
     def _load_model_and_processor(self, model_source: str, dtype: torch.dtype):
+        config = AutoConfig.from_pretrained(model_source, trust_remote_code=True)
+        model_type = getattr(config, "model_type", "").lower()
         lower_source = model_source.lower()
-        # Phi-3 Vision uses causal LM head; force sdpa/eager to avoid flash-attn dependency
-        if "phi-3" in lower_source:
+
+        # Phi-3 Vision
+        if "phi3" in model_type or "phi-3" in lower_source:
             processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained(
                 model_source,
@@ -68,7 +72,7 @@ class VLMRunner:
             return processor, model
 
         # Llava Next models
-        if "llava" in lower_source:
+        if "llava" in model_type or "llava" in lower_source:
             from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
 
             processor = LlavaNextProcessor.from_pretrained(model_source, trust_remote_code=True)
@@ -76,11 +80,11 @@ class VLMRunner:
                 model_source,
                 torch_dtype=dtype,
                 trust_remote_code=True,
-                attn_implementation="eager",
+                attn_implementation="sdpa",
             )
             return processor, model
 
-        # Llava and other VLMs often expose causal LM interface
+        # Fallback generic causal LM
         processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(
             model_source,
