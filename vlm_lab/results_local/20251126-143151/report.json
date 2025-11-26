@@ -1,0 +1,161 @@
+{
+  "documents": 4,
+  "runs": [
+    {
+      "document": "data/input/Pager.jpg",
+      "page_index": 0,
+      "model": "qwen-vl-mini",
+      "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+      "prompt": "You are an invoice extraction agent. Read the page image carefully and return data as JSON with keys:\nmeta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals),\nitems (array of description, quantity, unit_price, amount, currency),\nnotes (string array).\nOnly return valid JSON.",
+      "generation_kwargs": {
+        "max_new_tokens": 256,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/Screenshot 2025-11-20 at 1.12.08 pm.jpg",
+      "page_index": 0,
+      "model": "qwen-vl-mini",
+      "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+      "prompt": "You are an invoice extraction agent. Read the page image carefully and return data as JSON with keys:\nmeta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals),\nitems (array of description, quantity, unit_price, amount, currency),\nnotes (string array).\nOnly return valid JSON.",
+      "generation_kwargs": {
+        "max_new_tokens": 256,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/google.jpg",
+      "page_index": 0,
+      "model": "qwen-vl-mini",
+      "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+      "prompt": "You are an invoice extraction agent. Read the page image carefully and return data as JSON with keys:\nmeta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals),\nitems (array of description, quantity, unit_price, amount, currency),\nnotes (string array).\nOnly return valid JSON.",
+      "generation_kwargs": {
+        "max_new_tokens": 256,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/x.jpg",
+      "page_index": 0,
+      "model": "qwen-vl-mini",
+      "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+      "prompt": "You are an invoice extraction agent. Read the page image carefully and return data as JSON with keys:\nmeta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals),\nitems (array of description, quantity, unit_price, amount, currency),\nnotes (string array).\nOnly return valid JSON.",
+      "generation_kwargs": {
+        "max_new_tokens": 256,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/Pager.jpg",
+      "page_index": 0,
+      "model": "phi3-vision",
+      "model_id": "microsoft/Phi-3-vision-128k-instruct",
+      "prompt": "You are an invoice extraction agent. Return a JSON object with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nUse ISO date format YYYY-MM-DD and keep decimals with dot separator.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.1
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/Screenshot 2025-11-20 at 1.12.08 pm.jpg",
+      "page_index": 0,
+      "model": "phi3-vision",
+      "model_id": "microsoft/Phi-3-vision-128k-instruct",
+      "prompt": "You are an invoice extraction agent. Return a JSON object with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nUse ISO date format YYYY-MM-DD and keep decimals with dot separator.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.1
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/google.jpg",
+      "page_index": 0,
+      "model": "phi3-vision",
+      "model_id": "microsoft/Phi-3-vision-128k-instruct",
+      "prompt": "You are an invoice extraction agent. Return a JSON object with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nUse ISO date format YYYY-MM-DD and keep decimals with dot separator.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.1
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/x.jpg",
+      "page_index": 0,
+      "model": "phi3-vision",
+      "model_id": "microsoft/Phi-3-vision-128k-instruct",
+      "prompt": "You are an invoice extraction agent. Return a JSON object with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nUse ISO date format YYYY-MM-DD and keep decimals with dot separator.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.1
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/Pager.jpg",
+      "page_index": 0,
+      "model": "llava-mistral",
+      "model_id": "llava-hf/llava-v1.6-mistral-7b-hf",
+      "prompt": "You read invoice page images and output strict JSON with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nKeep only JSON, no explanations.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/Screenshot 2025-11-20 at 1.12.08 pm.jpg",
+      "page_index": 0,
+      "model": "llava-mistral",
+      "model_id": "llava-hf/llava-v1.6-mistral-7b-hf",
+      "prompt": "You read invoice page images and output strict JSON with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nKeep only JSON, no explanations.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/google.jpg",
+      "page_index": 0,
+      "model": "llava-mistral",
+      "model_id": "llava-hf/llava-v1.6-mistral-7b-hf",
+      "prompt": "You read invoice page images and output strict JSON with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nKeep only JSON, no explanations.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    },
+    {
+      "document": "data/input/x.jpg",
+      "page_index": 0,
+      "model": "llava-mistral",
+      "model_id": "llava-hf/llava-v1.6-mistral-7b-hf",
+      "prompt": "You read invoice page images and output strict JSON with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nKeep only JSON, no explanations.",
+      "generation_kwargs": {
+        "max_new_tokens": 384,
+        "temperature": 0.2
+      },
+      "raw_response": "",
+      "elapsed_seconds": 0.0
+    }
+  ]
+}

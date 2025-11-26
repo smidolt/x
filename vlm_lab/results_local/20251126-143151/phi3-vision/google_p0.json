@@ -1,0 +1,13 @@
+{
+  "document": "data/input/google.jpg",
+  "page_index": 0,
+  "model": "phi3-vision",
+  "model_id": "microsoft/Phi-3-vision-128k-instruct",
+  "prompt": "You are an invoice extraction agent. Return a JSON object with:\nmeta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},\nitems: [{description, quantity, unit_price, amount, currency}],\nnotes: [].\nUse ISO date format YYYY-MM-DD and keep decimals with dot separator.",
+  "generation_kwargs": {
+    "max_new_tokens": 384,
+    "temperature": 0.1
+  },
+  "raw_response": "",
+  "elapsed_seconds": 0.0
+}

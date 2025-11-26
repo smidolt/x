@@ -21,6 +21,7 @@ os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION_IMPORT", "1")
 os.environ.setdefault("FLASH_ATTENTION_SKIP", "1")
 os.environ.setdefault("USE_FLASH_ATTENTION_2", "0")
 os.environ.setdefault("USE_FLASH_ATTENTION", "0")
+os.environ.setdefault("FLASH_ATTENTION_FORCE_DISABLE", "1")
 os.environ.setdefault("ATTN_IMPLEMENTATION", "eager")
 
 from transformers import (
@@ -62,15 +63,22 @@ class VLMRunner:
 
     def _load_model_and_processor(self, model_source: str, dtype: torch.dtype):
         config = AutoConfig.from_pretrained(model_source, trust_remote_code=True)
+        # Hard-disable flash attention flags in config if present
+        for attr in ("use_flash_attention_2", "use_flash_attn", "flash_attn", "flash_attention"):
+            if hasattr(config, attr):
+                setattr(config, attr, False)
+        if hasattr(config, "attn_implementation"):
+            config.attn_implementation = "eager"
         model_type = getattr(config, "model_type", "").lower()
         lower_source = model_source.lower()
 
-        def _attn_kwargs(force_sdpa: bool = False) -> Dict[str, object]:
+        def _attn_kwargs() -> Dict[str, object]:
             # Force non-flash attention everywhere to avoid missing dependency crashes
             return {
-                "attn_implementation": "eager" if force_sdpa else "sdpa",
+                "attn_implementation": "eager",
                 "use_flash_attention_2": False,
                 "torch_dtype": dtype,
+                "config": config,
             }
 
         # Phi-3 Vision
@@ -79,7 +87,7 @@ class VLMRunner:
             model = AutoModelForCausalLM.from_pretrained(
                 model_source,
                 trust_remote_code=True,
-                **_attn_kwargs(force_sdpa=True),
+                **_attn_kwargs(),
             )
             return processor, model
 
@@ -91,7 +99,7 @@ class VLMRunner:
                 model = AutoModelForVision2Seq.from_pretrained(
                     model_source,
                     trust_remote_code=True,
-                    **_attn_kwargs(force_sdpa=True),
+                    **_attn_kwargs(),
                 )
             except Exception:
                 # Fallback to generic Llava classes if available in this transformers build
@@ -104,20 +112,20 @@ class VLMRunner:
                     model = AutoModelForVision2Seq.from_pretrained(
                         model_source,
                         trust_remote_code=True,
-                        **_attn_kwargs(force_sdpa=True),
+                        **_attn_kwargs(),
                     )
                 else:
                     try:
                         model = LlavaNextForConditionalGeneration.from_pretrained(
                             model_source,
                             trust_remote_code=True,
-                            **_attn_kwargs(force_sdpa=True),
+                            **_attn_kwargs(),
                         )
                     except Exception:
                         model = LlavaForConditionalGeneration.from_pretrained(
                             model_source,
                             trust_remote_code=True,
-                            **_attn_kwargs(force_sdpa=True),
+                            **_attn_kwargs(),
                         )
             return processor, model
 
