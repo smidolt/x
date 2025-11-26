@@ -242,11 +242,22 @@ class VLMRunner:
                     ],
                 }
             ]
-            chat_prompt = self.processor.apply_chat_template(
-                messages,
-                add_generation_prompt=True,
-                tokenize=False,
-            )
+            chat_template_fn = None
+            if hasattr(self.processor, "apply_chat_template"):
+                chat_template_fn = self.processor.apply_chat_template
+            elif hasattr(getattr(self.processor, "tokenizer", None), "apply_chat_template"):
+                chat_template_fn = self.processor.tokenizer.apply_chat_template  # type: ignore[attr-defined]
+
+            if chat_template_fn:
+                chat_prompt = chat_template_fn(
+                    messages,
+                    add_generation_prompt=True,
+                    tokenize=False,
+                )
+            else:
+                # Minimal fallback: prepend image placeholder
+                chat_prompt = "<image>\n" + prompt
+
             inputs = self.processor(
                 text=[chat_prompt],
                 images=[image],
