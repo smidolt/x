@@ -103,6 +103,13 @@ class VLMRunner:
                     attn_implementation="eager",
                     torch_dtype=dtype,
                 )
+            # Avoid dynamic cache path that expects seen_tokens on newer transformers
+            if hasattr(model, "generation_config"):
+                try:
+                    model.generation_config.cache_implementation = "static"
+                    model.generation_config.use_cache = False
+                except Exception:
+                    model.generation_config.use_cache = False
             return processor, model
 
         # Qwen2-VL family
@@ -278,6 +285,7 @@ class VLMRunner:
             "max_new_tokens": self.cfg.max_new_tokens,
             "temperature": self.cfg.temperature,
             "do_sample": False,  # greedy to avoid NaN probs on some ckpts
+            "use_cache": False,  # disable DynamicCache to avoid seen_tokens attr errors
         }
 
         start = time.time()
