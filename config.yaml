@@ -1,0 +1,50 @@
+# Invoice parsing MVP configuration
+company:
+  name: Example Seller d.o.o.
+  tax_id: SI12345678
+input:
+  path: data/input
+  archive: null  # optional path to archive with invoices
+output:
+  path: output
+  json_dir: output/json
+  summary: output/summary.csv
+document_type: invoice
+features:
+  layoutlm_enabled: true
+  llm_validation_enabled: false
+layoutlm:
+  enabled: true
+  model_name: microsoft/layoutlmv3-base
+  offline: true
+llm:
+  enabled: false
+  backend: stub
+  model_name: null
+ocr:
+  engine: tesseract  # tesseract | paddle | auto | comma-separated list
+  languages: eng
+  page_segmentation_mode: 6
+  oem: 3
+  enable_stub_fallback: true
+  paddle_lang: en
+preprocessing:
+  enabled: true
+  grayscale: true
+  resize_max_width: 2480  # ~A4 width @300 DPI
+  resize_max_height: 3508  # ~A4 height @300 DPI
+  normalize_dpi: true
+  target_dpi: 300
+  normalize_to_a4: true
+  deskew_enabled: true
+  deskew_min_angle: 3.0
+  deskew_max_angle: 5.0
+  crop_content_enabled: true
+  crop_threshold: 235
+  crop_margin: 16
+  denoise_enabled: true
+  denoise_strength: medium
+  contrast_enhance_enabled: true
+  adaptive_binarization_enabled: false
+  binarization_window_size: 35
+  binarization_offset: 10

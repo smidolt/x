@@ -1,0 +1,29 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+venv/
+myenv1/
+
+# IDE / OS junk
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Notebooks
+*/.ipynb_checkpoints/
+
+# Local data and outputs
+output/
+data/input/*
+!data/input/.gitkeep
+
+# VLM lab artifacts
+vlm_lab/results/
+vlm_lab/cache/

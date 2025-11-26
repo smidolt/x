@@ -1,0 +1,12 @@
+numpy>=2.0
+Pillow>=10.0
+opencv-python-headless>=4.10
+PyYAML>=6.0
+requests>=2.32
+tqdm>=4.67
+huggingface_hub>=0.36
+transformers>=4.57
+torch>=2.9
+torchvision>=0.24
+torchaudio>=2.9
+safetensors>=0.7

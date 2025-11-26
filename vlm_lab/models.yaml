@@ -1,0 +1,19 @@
+candidates:
+  - name: phi3-vision
+    model_id: microsoft/Phi-3-vision-128k-instruct
+    prompt: |
+      Extract structured invoice data (meta + line items) from the provided document image.
+      Respond strictly with JSON matching keys: meta, items, validation.
+    max_new_tokens: 512
+    temperature: 0.1
+
+  - name: llava-mistral
+    model_id: llava-hf/llava-v1.6-mistral-7b-hf
+    prompt: |
+      You are extracting invoice data. Read the page image and return JSON with keys:
+      meta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals),
+      items (list of objects: description, quantity, unit_price, amount, currency),
+      validation (notes array).
+      Output valid JSON only.
+    max_new_tokens: 512
+    temperature: 0.2
