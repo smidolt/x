@@ -9,3 +9,23 @@ candidates:
       Only return valid JSON.
     max_new_tokens: 256
     temperature: 0.2
+  - name: phi3-vision
+    model_id: microsoft/Phi-3-vision-128k-instruct
+    prompt: |
+      You are an invoice extraction agent. Return a JSON object with:
+      meta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},
+      items: [{description, quantity, unit_price, amount, currency}],
+      notes: [].
+      Use ISO date format YYYY-MM-DD and keep decimals with dot separator.
+    max_new_tokens: 384
+    temperature: 0.1
+  - name: llava-mistral
+    model_id: llava-hf/llava-v1.6-mistral-7b-hf
+    prompt: |
+      You read invoice page images and output strict JSON with:
+      meta {seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals},
+      items: [{description, quantity, unit_price, amount, currency}],
+      notes: [].
+      Keep only JSON, no explanations.
+    max_new_tokens: 384
+    temperature: 0.2

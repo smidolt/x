@@ -19,14 +19,17 @@ import torch
 os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION_IMPORT", "1")
 # Avoid flash-attn requirement if not installed
 os.environ.setdefault("FLASH_ATTENTION_SKIP", "1")
+os.environ.setdefault("USE_FLASH_ATTENTION_2", "0")
 
 from transformers import (
     AutoConfig,
     AutoImageProcessor,
     AutoModelForCausalLM,
     AutoProcessor,
+    AutoModelForVision2Seq,
     AutoTokenizer,
 )
+from transformers.utils import is_flash_attn_2_available
 
 
 def _resolve_model_source(model_id: str) -> str:
@@ -60,69 +63,46 @@ class VLMRunner:
         model_type = getattr(config, "model_type", "").lower()
         lower_source = model_source.lower()
 
+        def _attn_kwargs(prefer_flash: bool) -> Dict[str, object]:
+            if prefer_flash and is_flash_attn_2_available():
+                return {"attn_implementation": "flash_attention_2", "torch_dtype": dtype}
+            # Explicitly disable flash-attn to avoid missing dependency crashes
+            return {"attn_implementation": "sdpa", "use_flash_attention_2": False, "torch_dtype": dtype}
+
         # Phi-3 Vision
         if "phi3" in model_type or "phi-3" in lower_source:
             processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
             try:
                 model = AutoModelForCausalLM.from_pretrained(
                     model_source,
-                    torch_dtype=dtype,
                     trust_remote_code=True,
-                    attn_implementation="flash_attention_2",
+                    **_attn_kwargs(prefer_flash=True),
                 )
             except Exception:
                 model = AutoModelForCausalLM.from_pretrained(
                     model_source,
-                    torch_dtype=dtype,
                     trust_remote_code=True,
-                    attn_implementation="sdpa",
-                    use_flash_attention_2=False,
+                    **_attn_kwargs(prefer_flash=False),
                 )
             return processor, model
 
         # Llava Next models
         if "llava" in model_type or "llava" in lower_source:
-            # Try LlavaNext first, fallback to Llava
+            # AutoProcessor + AutoModelForVision2Seq work for Llava v1.5/v1.6/Next
+            processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
             try:
-                from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
-
-                processor = LlavaNextProcessor.from_pretrained(model_source, trust_remote_code=True)
-                try:
-                    model = LlavaNextForConditionalGeneration.from_pretrained(
-                        model_source,
-                        torch_dtype=dtype,
-                        trust_remote_code=True,
-                        attn_implementation="flash_attention_2",
-                    )
-                except Exception:
-                    model = LlavaNextForConditionalGeneration.from_pretrained(
-                        model_source,
-                        torch_dtype=dtype,
-                        trust_remote_code=True,
-                        attn_implementation="sdpa",
-                        use_flash_attention_2=False,
-                    )
-                return processor, model
+                model = AutoModelForVision2Seq.from_pretrained(
+                    model_source,
+                    trust_remote_code=True,
+                    **_attn_kwargs(prefer_flash=True),
+                )
             except Exception:
-                from transformers import LlavaProcessor, LlavaForConditionalGeneration
-
-                processor = LlavaProcessor.from_pretrained(model_source, trust_remote_code=True)
-                try:
-                    model = LlavaForConditionalGeneration.from_pretrained(
-                        model_source,
-                        torch_dtype=dtype,
-                        trust_remote_code=True,
-                        attn_implementation="flash_attention_2",
-                    )
-                except Exception:
-                    model = LlavaForConditionalGeneration.from_pretrained(
-                        model_source,
-                        torch_dtype=dtype,
-                        trust_remote_code=True,
-                        attn_implementation="sdpa",
-                        use_flash_attention_2=False,
-                    )
-                return processor, model
+                model = AutoModelForVision2Seq.from_pretrained(
+                    model_source,
+                    trust_remote_code=True,
+                    **_attn_kwargs(prefer_flash=False),
+                )
+            return processor, model
 
         # Fallback generic causal LM
         processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)

@@ -94,4 +94,10 @@ huggingface-cli download microsoft/Phi-3-vision-128k-instruct --local-dir ~/.cac
 - На основе лучших промптов формируем требования для шагов 13–15.
 - Сохраняем скачанные веса в `vlm_lab/cache` и документируем пути.
 
+### Известные нюансы загрузки моделей
+
+- Phi-3-Vision требует `torchvision`; оно теперь прописано в `vlm_lab/requirements.txt`.
+- Зависимость `flash-attn` необязательна: загрузка сначала пробует FlashAttention2, а при отсутствии автоматически откатывается на стандартный SDPA.
+- Для Llava v1.5/1.6/Next используем `AutoModelForVision2Seq` + `AutoProcessor`, поэтому конфиги `LlavaConfig/LlavaNextConfig` подхватываются без ручных классов.
+
 > **Важно:** PoC репа живёт внутри текущего проекта. Не трогаем основной `requirements.txt` и не ломаем существующий CLI. Когда переход через PoC закончится, лучшие практики переносим в основные `src/`.
