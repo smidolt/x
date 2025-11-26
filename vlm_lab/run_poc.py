@@ -203,11 +203,34 @@ class VLMRunner:
 
     def generate(self, image: Image.Image) -> Tuple[str, Dict[str, float]]:
         prompt = self.cfg.prompt.strip()
-        inputs = self.processor(
-            images=image,
-            text=prompt,
-            return_tensors="pt",
-        )
+
+        # Qwen2-VL requires chat template with explicit image token
+        model_type = getattr(self.model.config, "model_type", "").lower()
+        if "qwen2_vl" in model_type or "qwen2vl" in model_type or "qwen2" in model_type:
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "image": image},
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ]
+            text_inputs = self.processor.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=True,
+                return_tensors="pt",
+            )
+            vision_inputs = self.processor(images=[image], return_tensors="pt")
+            inputs = {**text_inputs, **vision_inputs}
+        else:
+            inputs = self.processor(
+                images=image,
+                text=prompt,
+                return_tensors="pt",
+            )
+
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
         gen_kwargs = {
             "max_new_tokens": self.cfg.max_new_tokens,
