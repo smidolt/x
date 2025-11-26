@@ -256,10 +256,10 @@ class VLMRunner:
                         tokenize=False,
                     )
                 except Exception:
-                    chat_prompt = f"<|user|>\n<|image_0|>\n{prompt}<|end|>\n<|assistant|>\n"
+                    chat_prompt = f"<|user|>\n<|image_1|>\n{prompt}<|end|>\n<|assistant|>\n"
             else:
                 # Phi-3 prompt format expects explicit image placeholder
-                chat_prompt = f"<|user|>\n<|image_0|>\n{prompt}<|end|>\n<|assistant|>\n"
+                chat_prompt = f"<|user|>\n<|image_1|>\n{prompt}<|end|>\n<|assistant|>\n"
 
             inputs = self.processor(
                 text=chat_prompt,
