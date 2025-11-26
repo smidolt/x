@@ -54,10 +54,23 @@ class VLMRunner:
 
     def _load_model_and_processor(self, model_source: str, dtype: torch.dtype):
         lower_source = model_source.lower()
-        # Phi-3 Vision uses causal LM head
+        # Phi-3 Vision uses causal LM head; force eager attention to avoid flash-attn dependency
         if "phi-3" in lower_source:
             processor = AutoProcessor.from_pretrained(model_source, trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained(
+                model_source,
+                torch_dtype=dtype,
+                trust_remote_code=True,
+                attn_implementation="eager",
+            )
+            return processor, model
+
+        # Llava Next models
+        if "llava" in lower_source:
+            from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
+
+            processor = LlavaNextProcessor.from_pretrained(model_source, trust_remote_code=True)
+            model = LlavaNextForConditionalGeneration.from_pretrained(
                 model_source,
                 torch_dtype=dtype,
                 trust_remote_code=True,
