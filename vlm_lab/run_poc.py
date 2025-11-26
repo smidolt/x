@@ -262,7 +262,7 @@ class VLMRunner:
                 chat_prompt = f"<|user|>\n<|image_0|>\n{prompt}<|end|>\n<|assistant|>\n"
 
             inputs = self.processor(
-                text=[chat_prompt],
+                text=chat_prompt,
                 images=[image],
                 return_tensors="pt",
             )
