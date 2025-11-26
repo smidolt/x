@@ -255,8 +255,8 @@ class VLMRunner:
                     tokenize=False,
                 )
             else:
-                # Minimal fallback: prepend image placeholder
-                chat_prompt = "<image>\n" + prompt
+                # Phi-3 prompt format expects explicit image placeholder
+                chat_prompt = f"<|user|>\n<|image_0|>\n{prompt}<|end|>\n<|assistant|>\n"
 
             inputs = self.processor(
                 text=[chat_prompt],
