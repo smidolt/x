@@ -315,9 +315,6 @@ def load_models_config(path: Path) -> List[ModelConfig]:
     candidates = data.get("candidates", [])
     configs: List[ModelConfig] = []
     for entry in candidates:
-        # Temporary skip for known-problematic Phi-3 vision model to avoid hangs
-        if entry.get("name", "").lower() == "phi3-vision":
-            continue
         try:
             cfg = ModelConfig(
                 name=entry["name"],
