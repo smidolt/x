@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -49,9 +50,10 @@ class ModelConfig:
 class VLMRunner:
     """Helper that loads a model/processor pair once and reuses it."""
 
-    def __init__(self, cfg: ModelConfig, device: torch.device) -> None:
+    def __init__(self, cfg: ModelConfig, device: torch.device, max_gen_seconds: int) -> None:
         self.cfg = cfg
         self.device = device
+        self.max_gen_seconds = max_gen_seconds
         if device.type == "cuda" and torch.cuda.is_bf16_supported():
             dtype = torch.bfloat16
         elif device.type in {"cuda", "mps"}:
@@ -297,9 +299,18 @@ class VLMRunner:
                 gen_kwargs["eos_token_id"] = eos_id
                 gen_kwargs["pad_token_id"] = eos_id
 
+        def _timeout_handler(signum, frame):  # pragma: no cover - runtime guard
+            raise TimeoutError(f"Generation exceeded {self.max_gen_seconds}s")
+
         start = time.time()
-        with torch.inference_mode():
-            output_ids = self.model.generate(**inputs, **gen_kwargs)
+        old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
+        signal.alarm(self.max_gen_seconds)
+        try:
+            with torch.inference_mode():
+                output_ids = self.model.generate(**inputs, **gen_kwargs)
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
         elapsed = time.time() - start
 
         decoded = self.processor.batch_decode(output_ids, skip_special_tokens=True)
@@ -372,6 +383,12 @@ def main() -> None:
     parser.add_argument("--max-pages", type=int, default=1, help="For multi-page PDFs convert only this many pages")
     parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--dry-run", action="store_true", help="Skip model inference (for testing)")
+    parser.add_argument(
+        "--max-gen-seconds",
+        type=int,
+        default=180,
+        help="Abort a single generation if it runs longer than this many seconds",
+    )
     args = parser.parse_args()
 
     configs = load_models_config(args.models_file)
@@ -396,7 +413,7 @@ def main() -> None:
             runner = None
         else:
             try:
-                runner = VLMRunner(cfg, device)
+                runner = VLMRunner(cfg, device, args.max_gen_seconds)
             except Exception as exc:  # pragma: no cover - runtime guard
                 error_payload = {
                     "model": cfg.name,
@@ -408,6 +425,7 @@ def main() -> None:
                 print(f"[ERROR] Failed to load {cfg.name}: {exc}")
                 continue
 
+        abort_model = False
         for doc_path in tqdm(documents, desc=f"{cfg.name}"):
             try:
                 images = extract_images(doc_path, args.max_pages)
@@ -431,13 +449,35 @@ def main() -> None:
                     payload["raw_response"] = ""
                     payload["elapsed_seconds"] = 0.0
                 else:
-                    response, info = runner.generate(image)
-                    payload["raw_response"] = response
-                    payload.update(info)
+                    try:
+                        response, info = runner.generate(image)
+                        payload["raw_response"] = response
+                        payload.update(info)
+                    except TimeoutError as exc:
+                        payload["status"] = "generation_timeout"
+                        payload["error"] = str(exc)
+                        output_path = model_dir / f"{doc_path.stem}_p{page_index}.json"
+                        save_result(output_path, payload)
+                        summary.append(payload)
+                        print(f"[WARN] Timeout for {cfg.name} on {doc_path} p{page_index}: {exc}")
+                        # Skip remaining pages/documents for this model
+                        abort_model = True
+                        break
+                    except Exception as exc:
+                        payload["status"] = "generation_failed"
+                        payload["error"] = str(exc)
+                        output_path = model_dir / f"{doc_path.stem}_p{page_index}.json"
+                        save_result(output_path, payload)
+                        summary.append(payload)
+                        print(f"[ERROR] Generation failed for {cfg.name} on {doc_path} p{page_index}: {exc}")
+                        abort_model = True
+                        break
 
                 output_path = model_dir / f"{doc_path.stem}_p{page_index}.json"
                 save_result(output_path, payload)
                 summary.append(payload)
+            if abort_model:
+                break
 
     report_path = run_dir / "report.json"
     save_result(report_path, {"documents": len(documents), "runs": summary})
