@@ -103,6 +103,15 @@ class VLMRunner:
                     attn_implementation="eager",
                     torch_dtype=dtype,
                 )
+            # Avoid DynamicCache path expecting seen_tokens
+            if hasattr(model, "config"):
+                model.config.use_cache = False
+            if hasattr(model, "generation_config"):
+                try:
+                    model.generation_config.cache_implementation = "static"
+                except Exception:
+                    pass
+                model.generation_config.use_cache = False
             return processor, model
 
         # Qwen2-VL family
@@ -278,6 +287,7 @@ class VLMRunner:
             "max_new_tokens": self.cfg.max_new_tokens,
             "temperature": self.cfg.temperature,
             "do_sample": False,  # greedy to avoid NaN probs on some ckpts
+            "use_cache": False,
         }
         is_phi3 = "phi3" in model_type or "phi-3" in model_type or "phi3v" in model_type
         if is_phi3:
