@@ -66,6 +66,13 @@ class VLMReasoner:
         self.model.eval()
 
     def _build_inputs(self, image: Image.Image, prompt: str):
+        # Limit image size to keep token count reasonable on GPUs/CPU
+        max_side = 1400
+        if max(image.size) > max_side:
+            scale = max_side / max(image.size)
+            new_size = (int(image.width * scale), int(image.height * scale))
+            image = image.resize(new_size)
+
         messages = [
             {
                 "role": "user",
