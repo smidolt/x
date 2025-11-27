@@ -384,6 +384,12 @@ def main() -> None:
     parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--dry-run", action="store_true", help="Skip model inference (for testing)")
     parser.add_argument(
+        "--skip-models",
+        nargs="*",
+        default=(),
+        help="Optional list of model names (from models.yaml) to skip",
+    )
+    parser.add_argument(
         "--max-gen-seconds",
         type=int,
         default=180,
@@ -404,8 +410,12 @@ def main() -> None:
 
     summary: List[Dict[str, object]] = []
     device = resolve_device(args.device)
+    skip_models = {name.lower() for name in args.skip_models}
 
     for cfg in configs:
+        if cfg.name.lower() in skip_models:
+            print(f"[INFO] Skipping model {cfg.name} as requested")
+            continue
         model_dir = run_dir / cfg.name
         ensure_dir(model_dir)
         print(f"=== Model {cfg.name} ({cfg.model_id}) on device {device} ===")
