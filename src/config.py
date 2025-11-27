@@ -36,6 +36,22 @@ class FeaturesConfig:
 
 
 @dataclass(slots=True)
+class VLMConfig:
+    enabled: bool = False
+    backend: str = "heuristic"  # "heuristic" | "qwen2_vl" (optional heavy)
+    model_name: str = "Qwen/Qwen2-VL-2B-Instruct"
+    device: str = "auto"
+    max_new_tokens: int = 64
+    temperature: float = 0.1
+    prompt: str = (
+        "You are an invoice extraction agent. Read the page image carefully and return data as JSON with keys: "
+        "meta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, issue_date, currency, totals), "
+        "items (array of description, quantity, unit_price, amount, currency), notes (string array). "
+        "Only return valid JSON."
+    )
+
+
+@dataclass(slots=True)
 class LayoutLMConfig:
     enabled: bool = True
     model_name: str = "microsoft/layoutlmv3-base"
@@ -88,7 +104,9 @@ class AppConfig:
     input: InputConfig
     output: OutputConfig
     document_type: str = "invoice"
+    pipeline_mode: str = "classic"  # classic | vlm | hybrid
     features: FeaturesConfig = field(default_factory=FeaturesConfig)
+    vlm: VLMConfig = field(default_factory=VLMConfig)
     layoutlm: LayoutLMConfig = field(default_factory=LayoutLMConfig)
     llm: LLMConfig = field(default_factory=LLMConfig)
     ocr: OCRConfig = field(default_factory=OCRConfig)
@@ -111,6 +129,7 @@ def load_config(path: Path) -> AppConfig:
     input_cfg = _validate_dict(raw_config, "input")
     output_cfg = _validate_dict(raw_config, "output")
     features_cfg = raw_config.get("features", {})
+    vlm_cfg = raw_config.get("vlm", {})
     layoutlm_cfg = raw_config.get("layoutlm", {})
     llm_cfg = raw_config.get("llm", {})
     ocr_cfg = raw_config.get("ocr", {})
@@ -131,9 +150,29 @@ def load_config(path: Path) -> AppConfig:
             summary_csv=Path(output_cfg.get("summary", "output/summary.csv")),
         ),
         document_type=str(raw_config.get("document_type", "invoice")),
+        pipeline_mode=str(raw_config.get("pipeline_mode", "classic")),
         features=FeaturesConfig(
             layoutlm_enabled=bool(features_cfg.get("layoutlm_enabled", True)),
             llm_validation_enabled=bool(features_cfg.get("llm_validation_enabled", False)),
+        ),
+        vlm=VLMConfig(
+            enabled=bool(vlm_cfg.get("enabled", False)),
+            backend=str(vlm_cfg.get("backend", "heuristic")),
+            model_name=str(vlm_cfg.get("model_name", "Qwen/Qwen2-VL-2B-Instruct")),
+            device=str(vlm_cfg.get("device", "auto")),
+            max_new_tokens=int(vlm_cfg.get("max_new_tokens", 64)),
+            temperature=float(vlm_cfg.get("temperature", 0.1)),
+            prompt=str(
+                vlm_cfg.get(
+                    "prompt",
+                    (
+                        "You are an invoice extraction agent. Read the page image carefully and return data as JSON "
+                        "with keys: meta (seller_name, seller_address, buyer_name, buyer_address, invoice_number, "
+                        "issue_date, currency, totals), items (array of description, quantity, unit_price, amount, "
+                        "currency), notes (string array). Only return valid JSON."
+                    ),
+                )
+            ),
         ),
         layoutlm=LayoutLMConfig(
             enabled=bool(layoutlm_cfg.get("enabled", True)),

@@ -40,10 +40,21 @@ pip install -r requirements.txt
      model_name: sshleifer/tiny-distilbert-base-cased-distilled-sst-2
    ```
    Any HuggingFace text-classification checkpoint will work.
+3. **VLM block detector (optional)**
+   - Default backend: `heuristic` (no heavy model; builds header/table/totals boxes from OCR).
+   - Qwen2-VL wiring kept for PoC, but phi3/llava are removed. Enable via `config.yaml`:
+   ```yaml
+   pipeline_mode: vlm   # or hybrid
+   vlm:
+     enabled: true
+     backend: heuristic  # leave as heuristic to avoid GPU load; qwen2_vl is optional/heavy
+   ```
 
 ## Config highlights
 - `input.path` — folder with images/PDFs to process (default `data/input`).
 - `company` — expected seller identity for validation.
+- `pipeline_mode` — `classic` (no VLM blocks), `vlm` (VLM blocks only + downstream), `hybrid` (both).
+- `vlm` — VLM block detector settings; `enabled: true` to emit `vlm_blocks/*.json`.
 - `features.layoutlm_enabled`, `llm.enabled` — global toggles.
 - `preprocessing`, `ocr`, `layoutlm`, `llm` sections — fine-grained knobs for each stage.
 

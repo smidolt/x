@@ -10,9 +10,17 @@ output:
   json_dir: output/json
   summary: output/summary.csv
 document_type: invoice
+pipeline_mode: vlm  # classic | vlm | hybrid
 features:
   layoutlm_enabled: true
   llm_validation_enabled: false
+vlm:
+  enabled: true
+  backend: qwen2_vl  # heuristic | qwen2_vl (heavy, optional)
+  model_name: Qwen/Qwen2-VL-2B-Instruct
+  device: auto
+  max_new_tokens: 256
+  temperature: 0.1
 layoutlm:
   enabled: true
   model_name: microsoft/layoutlmv3-base

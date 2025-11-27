@@ -17,6 +17,7 @@ from .ocr import run_ocr
 from .parsing.items import ItemsParser
 from .parsing.meta import MetaParser
 from .preprocessing import PreprocessingPipeline
+from .vlm import BlockDetector, VLMReasoner
 from .validation.llm import build_llm_backend
 from .validation.rules import RuleValidator
 
@@ -60,6 +61,8 @@ def run_pipeline(config: AppConfig) -> None:
     )
     meta_parser = MetaParser(config.company.name, config.company.tax_id)
     items_parser = ItemsParser()
+    block_detector = BlockDetector(config.vlm)
+    vlm_reasoner = VLMReasoner(config.vlm) if config.vlm.enabled else None
     rule_validator = RuleValidator(
         required_fields=[
             "seller_name",
@@ -90,28 +93,66 @@ def run_pipeline(config: AppConfig) -> None:
 
         preprocessed = preprocessing.run(document)
         ocr_result = run_ocr(preprocessed.processed_path, ocr_output_dir, config.ocr)
-        layout_annotations = layout_analyzer.run(ocr_result.json_path)
-        layout_data = asdict(layout_annotations)
-        meta = meta_parser.run(ocr_result.json_path, layout_data)
-        items = items_parser.run(
-            ocr_result.json_path,
-            layout_data,
-            currency_hint=meta.raw.get("currency"),
-        )
-        rule_validation = rule_validator.run(meta.raw, asdict(items))
-        llm_validation = llm_backend.validate(meta.raw, asdict(items))
+        blocks = None
+        blocks_output_path = config.output.base_path / "vlm_blocks" / f"{document.stem}.blocks.json"
+        if config.pipeline_mode in {"vlm", "hybrid"} and config.vlm.enabled:
+            blocks = block_detector.run(ocr_result.words, blocks_output_path)
 
-        document_payload = {
-            "meta": meta.raw,
-            "items": asdict(items),
-            "validation": {
-                "rules": {
-                    "errors": rule_validation.errors,
-                    "warnings": rule_validation.warnings,
-                    "is_valid": rule_validation.is_valid,
+        # Classic branch
+        classic_payload = None
+        classic_validation = None
+        if config.pipeline_mode in {"classic", "hybrid"}:
+            layout_annotations = layout_analyzer.run(ocr_result.json_path)
+            layout_data = asdict(layout_annotations)
+            meta = meta_parser.run(ocr_result.json_path, layout_data)
+            items = items_parser.run(
+                ocr_result.json_path,
+                layout_data,
+                currency_hint=meta.raw.get("currency"),
+            )
+            classic_validation = rule_validator.run(meta.raw, asdict(items))
+            llm_validation = llm_backend.validate(meta.raw, asdict(items))
+            classic_payload = {
+                "meta": meta.raw,
+                "items": asdict(items),
+                "validation": {
+                    "rules": {
+                        "errors": classic_validation.errors,
+                        "warnings": classic_validation.warnings,
+                        "is_valid": classic_validation.is_valid,
+                    },
+                    "llm": llm_validation,
                 },
-                "llm": llm_validation,
-            },
+            }
+
+        # VLM branch
+        vlm_payload = None
+        vlm_validation = None
+        if config.pipeline_mode in {"vlm", "hybrid"} and config.vlm.enabled and vlm_reasoner is not None:
+            vlm_result = vlm_reasoner.run(preprocessed.processed_path)
+            parsed = vlm_result.parsed if isinstance(vlm_result.parsed, dict) else {}
+            meta_vlm = parsed.get("meta", {}) if isinstance(parsed.get("meta", {}), dict) else {}
+            items_vlm = parsed.get("items", []) if isinstance(parsed.get("items", []), list) else []
+            vlm_validation = rule_validator.run(meta_vlm, {"items": items_vlm})
+            llm_validation_vlm = llm_backend.validate(meta_vlm, {"items": items_vlm})
+            vlm_payload = {
+                "raw_response": vlm_result.raw_response,
+                "parsed": parsed,
+                "error": vlm_result.error,
+                "validation": {
+                    "rules": {
+                        "errors": vlm_validation.errors,
+                        "warnings": vlm_validation.warnings,
+                        "is_valid": vlm_validation.is_valid,
+                    },
+                    "llm": llm_validation_vlm,
+                },
+                "elapsed_seconds": vlm_result.elapsed_seconds,
+            }
+
+        # Compose output
+        document_payload = {
+            "mode": config.pipeline_mode,
             "preprocessing": {
                 "steps": preprocessed.steps_applied,
                 "warnings": preprocessed.warnings,
@@ -120,23 +161,38 @@ def run_pipeline(config: AppConfig) -> None:
             "artifacts": {
                 "preprocessed_path": str(preprocessed.processed_path),
                 "ocr_json": str(ocr_result.json_path),
+                "vlm_blocks": str(blocks_output_path) if blocks else None,
             },
         }
+        if classic_payload:
+            document_payload["classic"] = classic_payload
+        if vlm_payload:
+            document_payload["vlm"] = vlm_payload
+
         outputs["json"].parent.mkdir(parents=True, exist_ok=True)
         outputs["json"].write_text(json.dumps(document_payload, indent=2), encoding="utf-8")
 
-        summary_rows.append(
-            {
-                "file_name": document.name,
-                "is_valid_invoice": str(rule_validation.is_valid),
-                "errors_count": str(len(rule_validation.errors)),
-                "warnings_count": str(len(rule_validation.warnings)),
-                "total_gross": str(meta.raw.get("total_gross", "")),
-                "seller_name": meta.raw.get("seller_name", ""),
-                "invoice_number": meta.raw.get("invoice_number", ""),
-                "elapsed_seconds": f"{time.time() - doc_start:.2f}",
-            }
-        )
+        summary_row = {
+            "file_name": document.name,
+            "elapsed_seconds": f"{time.time() - doc_start:.2f}",
+        }
+        if classic_validation:
+            summary_row.update(
+                {
+                    "classic_is_valid": str(classic_validation.is_valid),
+                    "classic_errors": str(len(classic_validation.errors)),
+                    "classic_warnings": str(len(classic_validation.warnings)),
+                }
+            )
+        if vlm_validation:
+            summary_row.update(
+                {
+                    "vlm_is_valid": str(vlm_validation.is_valid),
+                    "vlm_errors": str(len(vlm_validation.errors)),
+                    "vlm_warnings": str(len(vlm_validation.warnings)),
+                }
+            )
+        summary_rows.append(summary_row)
 
     _write_summary_csv(config.output.summary_csv, summary_rows)
 
