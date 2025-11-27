@@ -287,6 +287,15 @@ class VLMRunner:
             "do_sample": False,  # greedy to avoid NaN probs on some ckpts
             "use_cache": False,  # disable DynamicCache to avoid seen_tokens attr errors
         }
+        is_phi3 = "phi3" in model_type or "phi-3" in model_type or "phi3v" in model_type
+        if is_phi3:
+            # Phi-3 tends to hang with large outputs; cap tokens and set eos/pad
+            gen_kwargs["max_new_tokens"] = min(gen_kwargs["max_new_tokens"], 128)
+            tokenizer = getattr(self.processor, "tokenizer", None)
+            eos_id = getattr(tokenizer, "eos_token_id", None)
+            if eos_id is not None:
+                gen_kwargs["eos_token_id"] = eos_id
+                gen_kwargs["pad_token_id"] = eos_id
 
         start = time.time()
         with torch.inference_mode():
