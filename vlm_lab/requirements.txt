@@ -1,9 +1,0 @@
-transformers>=4.43.0
-torch>=2.3.0
-torchvision>=0.18.0
-Pillow>=10.3.0
-PyYAML>=6.0.1
-pdf2image>=1.17.0
-rich>=13.7.1
-tqdm>=4.66.4
-accelerate>=0.31.0

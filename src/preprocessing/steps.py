@@ -106,7 +106,34 @@ def crop_to_content(
 
 def deskew_image(image: "Image.Image", max_angle: float, min_angle: float = 1.0) -> StepResult:
     gray = ImageOps.grayscale(image)
+    mask = gray.point(lambda x: 255 if x < 240 else 0)
+    bbox = mask.getbbox()
+    if not bbox:
+        return StepResult(image=image, applied=False, warning="Deskew skipped (no content detected).")
 
+    img_area = image.width * image.height or 1
+    content_area = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+    coverage = content_area / img_area
+    if coverage < 0.3:
+        return StepResult(
+            image=image,
+            applied=False,
+            warning="Deskew skipped (sparse content; avoiding over-rotation).",
+        )
+
+    angles: list[float] = []
+
+    # Prefer Hough-based angle (more stable on invoices with many horizontal lines)
+    hough_angle = _estimate_angle_via_hough(gray, max_angle)
+    if hough_angle is not None:
+        angles.append(hough_angle)
+
+    # Regression-based estimate (conservative)
+    regression_angle = _estimate_angle_via_regression(gray, max_angle)
+    if regression_angle is not None:
+        angles.append(regression_angle)
+
+    # OpenCV minAreaRect estimate
     if cv2 and np:
         arr = np.array(gray)
         coords = np.column_stack(np.where(arr < 255))
@@ -116,30 +143,33 @@ def deskew_image(image: "Image.Image", max_angle: float, min_angle: float = 1.0)
                 angle = -(90 + angle)
             else:
                 angle = -angle
+            angles.append(angle)
+    elif not (cv2 and np):
+        LOGGER.debug("OpenCV/NumPy not available; skipping cv2-based deskew.")
 
-            if abs(angle) >= max(min_angle, 0.1):
-                limited_angle = max(-max_angle, min(max_angle, angle))
-                LOGGER.debug("Deskew angle=%.2f (limited to %.2f)", angle, limited_angle)
-                rotated = image.rotate(limited_angle, resample=Image.BICUBIC, fillcolor=255)
-                return StepResult(image=rotated, applied=True)
+    if not angles:
+        warning = None
+        if not (cv2 and np):
+            warning = "Deskew skipped (install numpy + opencv-python for improved accuracy)."
+        return StepResult(image=image, applied=False, warning=warning)
 
-    fallback_result = _deskew_via_regression(image, gray, max_angle, min_angle)
-    if fallback_result is not None:
-        return fallback_result
+    # Choose the smallest absolute angle to avoid over-rotation
+    chosen = min(angles, key=lambda a: abs(a))
+    if abs(chosen) < max(min_angle, 0.1):
+        return StepResult(image=image, applied=False)
 
-    warning = None
-    if not (cv2 and np):
-        warning = "Deskew skipped (install numpy + opencv-python for improved accuracy)."
-        LOGGER.warning(warning)
-    return StepResult(image=image, applied=False, warning=warning)
+    limited_angle = max(-max_angle, min(max_angle, chosen))
+    LOGGER.debug(
+        "Deskew angle candidates=%s chosen=%.2f limited=%.2f",
+        [round(a, 2) for a in angles],
+        chosen,
+        limited_angle,
+    )
+    rotated = image.rotate(limited_angle, resample=Image.BICUBIC, fillcolor=255)
+    return StepResult(image=rotated, applied=True)
 
 
-def _deskew_via_regression(
-    original_image: "Image.Image",
-    gray_image: "Image.Image",
-    max_angle: float,
-    min_angle: float,
-) -> StepResult | None:
+def _estimate_angle_via_regression(gray_image: "Image.Image", max_angle: float) -> float | None:
     width, height = gray_image.size
     pixels = gray_image.load()
     samples = max(16, width // 40)
@@ -175,16 +205,52 @@ def _deskew_via_regression(
 
     slope = sum_xy / sum_xx
     angle_deg = math.degrees(math.atan(slope))
-    LOGGER.debug(
-        "Deskew regression slope=%.4f angle=%.2f coords=%d", slope, angle_deg, len(coords)
-    )
-
     limited_angle = max(-max_angle, min(max_angle, angle_deg))
-    if abs(limited_angle) < max(min_angle, 0.1):
-        return StepResult(image=original_image, applied=False)
+    LOGGER.debug("Deskew regression slope=%.4f angle=%.2f coords=%d", slope, angle_deg, len(coords))
+    return limited_angle
 
-    rotated = original_image.rotate(limited_angle, resample=Image.BICUBIC, fillcolor=255)
-    return StepResult(image=rotated, applied=True)
+
+def _estimate_angle_via_hough(gray_image: "Image.Image", max_angle: float) -> float | None:
+    if not (cv2 and np):
+        return None
+    arr = np.array(gray_image)
+    # Boost contrast and binarize to emphasize text/lines
+    arr_blur = cv2.GaussianBlur(arr, (3, 3), 0)
+    _, binary = cv2.threshold(arr_blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    edges = cv2.Canny(binary, 50, 150, apertureSize=3)
+
+    lines = cv2.HoughLinesP(
+        edges,
+        rho=1,
+        theta=np.pi / 1800.0,  # fine resolution (~0.1 deg)
+        threshold=80,
+        minLineLength=max(arr.shape[1], arr.shape[0]) * 0.15,
+        maxLineGap=20,
+    )
+    if lines is None or len(lines) == 0:
+        return None
+
+    angles: list[float] = []
+    for x1, y1, x2, y2 in lines[:, 0]:
+        dx = x2 - x1
+        dy = y2 - y1
+        if dx == 0:
+            continue
+        angle = math.degrees(math.atan2(dy, dx))
+        # Normalize to [-90, 90]
+        if angle < -90:
+            angle += 180
+        if angle > 90:
+            angle -= 180
+        if abs(angle) <= max_angle + 1:
+            angles.append(angle)
+
+    if not angles:
+        return None
+    # Use median for robustness
+    angles.sort()
+    median = angles[len(angles) // 2]
+    return median
 
 
 def denoise_image(image: "Image.Image", strength: str = "medium") -> StepResult:
