@@ -1,0 +1,46 @@
+{
+  "backend": "heuristic",
+  "elapsed_seconds": 0.0,
+  "blocks": [
+    {
+      "kind": "header",
+      "bbox": [
+        187,
+        192,
+        2291,
+        914
+      ],
+      "confidence": 0.35
+    },
+    {
+      "kind": "table",
+      "bbox": [
+        187,
+        914,
+        2291,
+        2885
+      ],
+      "confidence": 0.25
+    },
+    {
+      "kind": "totals",
+      "bbox": [
+        187,
+        2885,
+        2291,
+        3476
+      ],
+      "confidence": 0.35
+    }
+  ],
+  "raw": {
+    "source": "heuristic_from_ocr",
+    "word_count": 104,
+    "bbox_extent": [
+      187,
+      192,
+      2291,
+      3476
+    ]
+  }
+}

@@ -1,0 +1,1467 @@
+{
+  "source": "output_vlm/preprocessed/google__grayscale__crop_to_content__deskew__resize__normalize_to_a4__denoise__contrast__adaptive_binarization.png",
+  "engine": "tesseract",
+  "engine_attempts": [
+    "tesseract"
+  ],
+  "elapsed_seconds": 0.5197089579887688,
+  "word_count": 104,
+  "words": [
+    {
+      "text": "Google",
+      "bbox": [
+        210,
+        192,
+        641,
+        355
+      ],
+      "confidence": 96.709442,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 1
+    },
+    {
+      "text": "Google",
+      "bbox": [
+        2120,
+        236,
+        2224,
+        338
+      ],
+      "confidence": 45.412308,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 2
+    },
+    {
+      "text": "Lic",
+      "bbox": [
+        2243,
+        274,
+        2291,
+        302
+      ],
+      "confidence": 45.412308,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 3
+    },
+    {
+      "text": "1600",
+      "bbox": [
+        1919,
+        341,
+        1992,
+        370
+      ],
+      "confidence": 96.287056,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 2,
+      "word_num": 1
+    },
+    {
+      "text": "Amphitheatre",
+      "bbox": [
+        2001,
+        340,
+        2203,
+        377
+      ],
+      "confidence": 96.294304,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 2,
+      "word_num": 2
+    },
+    {
+      "text": "Pkwy",
+      "bbox": [
+        2213,
+        340,
+        2291,
+        377
+      ],
+      "confidence": 96.508827,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 2,
+      "word_num": 3
+    },
+    {
+      "text": "|",
+      "bbox": [
+        203,
+        408,
+        214,
+        492
+      ],
+      "confidence": 83.605637,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 1
+    },
+    {
+      "text": "nv",
+      "bbox": [
+        227,
+        428,
+        328,
+        492
+      ],
+      "confidence": 83.656288,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 2
+    },
+    {
+      "text": "O",
+      "bbox": [
+        333,
+        428,
+        383,
+        492
+      ],
+      "confidence": 71.072037,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 3
+    },
+    {
+      "text": "|",
+      "bbox": [
+        395,
+        408,
+        407,
+        492
+      ],
+      "confidence": 45.575336,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 4
+    },
+    {
+      "text": "Cc",
+      "bbox": [
+        413,
+        404,
+        465,
+        496
+      ],
+      "confidence": 56.398922,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 5
+    },
+    {
+      "text": "e",
+      "bbox": [
+        471,
+        428,
+        520,
+        492
+      ],
+      "confidence": 79.715515,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 6
+    },
+    {
+      "text": "Mountain",
+      "bbox": [
+        1911,
+        408,
+        2049,
+        437
+      ],
+      "confidence": 96.685349,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 7
+    },
+    {
+      "text": "View,",
+      "bbox": [
+        2058,
+        408,
+        2136,
+        442
+      ],
+      "confidence": 96.779282,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 8
+    },
+    {
+      "text": "CA",
+      "bbox": [
+        2146,
+        408,
+        2188,
+        437
+      ],
+      "confidence": 96.238472,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 9
+    },
+    {
+      "text": "94043",
+      "bbox": [
+        2198,
+        408,
+        2290,
+        437
+      ],
+      "confidence": 96.841064,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 3,
+      "word_num": 10
+    },
+    {
+      "text": "United",
+      "bbox": [
+        2092,
+        474,
+        2186,
+        504
+      ],
+      "confidence": 96.981697,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 4,
+      "word_num": 1
+    },
+    {
+      "text": "States",
+      "bbox": [
+        2196,
+        475,
+        2290,
+        504
+      ],
+      "confidence": 96.996536,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 4,
+      "word_num": 2
+    },
+    {
+      "text": "Invoice",
+      "bbox": [
+        196,
+        530,
+        300,
+        559
+      ],
+      "confidence": 96.52346,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 5,
+      "word_num": 1
+    },
+    {
+      "text": "number:",
+      "bbox": [
+        311,
+        529,
+        430,
+        559
+      ],
+      "confidence": 96.610146,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 5,
+      "word_num": 2
+    },
+    {
+      "text": "3841957944",
+      "bbox": [
+        440,
+        530,
+        628,
+        559
+      ],
+      "confidence": 96.802147,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 5,
+      "word_num": 3
+    },
+    {
+      "text": "Federal",
+      "bbox": [
+        1886,
+        541,
+        1993,
+        571
+      ],
+      "confidence": 96.909691,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 5,
+      "word_num": 4
+    },
+    {
+      "text": "Tax",
+      "bbox": [
+        2002,
+        542,
+        2055,
+        571
+      ],
+      "confidence": 96.87043,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 5,
+      "word_num": 5
+    },
+    {
+      "text": "ID:",
+      "bbox": [
+        2066,
+        542,
+        2102,
+        571
+      ],
+      "confidence": 92.646515,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 5,
+      "word_num": 6
+    },
+    {
+      "text": "77-0493581",
+      "bbox": [
+        2112,
+        542,
+        2285,
+        571
+      ],
+      "confidence": 79.139023,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 5,
+      "word_num": 7
+    },
+    {
+      "text": "Bill",
+      "bbox": [
+        189,
+        701,
+        234,
+        730
+      ],
+      "confidence": 68.149879,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 6,
+      "word_num": 1
+    },
+    {
+      "text": "to",
+      "bbox": [
+        243,
+        704,
+        273,
+        731
+      ],
+      "confidence": 68.149879,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 6,
+      "word_num": 2
+    },
+    {
+      "text": "Yuliya",
+      "bbox": [
+        187,
+        768,
+        275,
+        805
+      ],
+      "confidence": 93.274017,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 7,
+      "word_num": 1
+    },
+    {
+      "text": "Malinina",
+      "bbox": [
+        287,
+        768,
+        411,
+        798
+      ],
+      "confidence": 91.838348,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 7,
+      "word_num": 2
+    },
+    {
+      "text": "Samethinkers",
+      "bbox": [
+        188,
+        835,
+        392,
+        865
+      ],
+      "confidence": 92.966408,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 8,
+      "word_num": 1
+    },
+    {
+      "text": "Inc.",
+      "bbox": [
+        403,
+        836,
+        454,
+        865
+      ],
+      "confidence": 96.182961,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 8,
+      "word_num": 2
+    },
+    {
+      "text": "211",
+      "bbox": [
+        188,
+        903,
+        239,
+        932
+      ],
+      "confidence": 96.586006,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 9,
+      "word_num": 1
+    },
+    {
+      "text": "East",
+      "bbox": [
+        255,
+        903,
+        318,
+        932
+      ],
+      "confidence": 96.851822,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 9,
+      "word_num": 2
+    },
+    {
+      "text": "7th",
+      "bbox": [
+        327,
+        902,
+        374,
+        932
+      ],
+      "confidence": 96.851822,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 9,
+      "word_num": 3
+    },
+    {
+      "text": "Street,",
+      "bbox": [
+        384,
+        903,
+        478,
+        937
+      ],
+      "confidence": 96.97789,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 9,
+      "word_num": 4
+    },
+    {
+      "text": "Suite",
+      "bbox": [
+        488,
+        903,
+        562,
+        932
+      ],
+      "confidence": 96.496552,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 9,
+      "word_num": 5
+    },
+    {
+      "text": "620",
+      "bbox": [
+        572,
+        903,
+        626,
+        932
+      ],
+      "confidence": 96.496552,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 9,
+      "word_num": 6
+    },
+    {
+      "text": "Austin,",
+      "bbox": [
+        188,
+        970,
+        290,
+        1004
+      ],
+      "confidence": 96.951782,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 10,
+      "word_num": 1
+    },
+    {
+      "text": "TX",
+      "bbox": [
+        298,
+        970,
+        339,
+        999
+      ],
+      "confidence": 95.535858,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 10,
+      "word_num": 2
+    },
+    {
+      "text": "78701",
+      "bbox": [
+        348,
+        970,
+        437,
+        999
+      ],
+      "confidence": 95.535858,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 10,
+      "word_num": 3
+    },
+    {
+      "text": "United",
+      "bbox": [
+        189,
+        1036,
+        283,
+        1066
+      ],
+      "confidence": 96.994331,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 11,
+      "word_num": 1
+    },
+    {
+      "text": "States",
+      "bbox": [
+        293,
+        1037,
+        387,
+        1066
+      ],
+      "confidence": 97.004417,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 11,
+      "word_num": 2
+    },
+    {
+      "text": "Details",
+      "bbox": [
+        189,
+        1162,
+        291,
+        1208
+      ],
+      "confidence": 96.586624,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 12,
+      "word_num": 1
+    },
+    {
+      "text": "Google",
+      "bbox": [
+        1240,
+        1166,
+        1346,
+        1204
+      ],
+      "confidence": 96.897797,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 12,
+      "word_num": 2
+    },
+    {
+      "text": "Workspace",
+      "bbox": [
+        1355,
+        1166,
+        1521,
+        1204
+      ],
+      "confidence": 96.564507,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 12,
+      "word_num": 3
+    },
+    {
+      "text": "Invoice",
+      "bbox": [
+        190,
+        1228,
+        294,
+        1257
+      ],
+      "confidence": 96.470589,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 13,
+      "word_num": 1
+    },
+    {
+      "text": "number",
+      "bbox": [
+        304,
+        1227,
+        418,
+        1257
+      ],
+      "confidence": 80.39566,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 13,
+      "word_num": 2
+    },
+    {
+      "text": "..............02.c.+00+6+2-3841957944",
+      "bbox": [
+        429,
+        1229,
+        931,
+        1257
+      ],
+      "confidence": 0.0,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 13,
+      "word_num": 3
+    },
+    {
+      "text": "Invoice",
+      "bbox": [
+        190,
+        1287,
+        289,
+        1316
+      ],
+      "confidence": 96.698082,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 1
+    },
+    {
+      "text": "date",
+      "bbox": [
+        304,
+        1282,
+        350,
+        1326
+      ],
+      "confidence": 93.17746,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 2
+    },
+    {
+      "text": "...............................Dee",
+      "bbox": [
+        373,
+        1288,
+        799,
+        1316
+      ],
+      "confidence": 0.0,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 3
+    },
+    {
+      "text": "31,",
+      "bbox": [
+        813,
+        1288,
+        852,
+        1322
+      ],
+      "confidence": 96.895294,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 4
+    },
+    {
+      "text": "2020",
+      "bbox": [
+        868,
+        1288,
+        935,
+        1316
+      ],
+      "confidence": 96.962044,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 5
+    },
+    {
+      "text": "Total",
+      "bbox": [
+        1239,
+        1300,
+        1313,
+        1330
+      ],
+      "confidence": 93.090614,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 6
+    },
+    {
+      "text": "in",
+      "bbox": [
+        1326,
+        1301,
+        1349,
+        1330
+      ],
+      "confidence": 93.090614,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 7
+    },
+    {
+      "text": "USD",
+      "bbox": [
+        1372,
+        1301,
+        1421,
+        1330
+      ],
+      "confidence": 95.913284,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 8
+    },
+    {
+      "text": "$582",
+      "bbox": [
+        2090,
+        1288,
+        2212,
+        1346
+      ],
+      "confidence": 95.834923,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 9
+    },
+    {
+      "text": "44",
+      "bbox": [
+        2229,
+        1295,
+        2291,
+        1340
+      ],
+      "confidence": 96.223534,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 14,
+      "word_num": 10
+    },
+    {
+      "text": "Billing",
+      "bbox": [
+        190,
+        1348,
+        277,
+        1385
+      ],
+      "confidence": 89.783844,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 15,
+      "word_num": 1
+    },
+    {
+      "text": "ID",
+      "bbox": [
+        289,
+        1349,
+        317,
+        1377
+      ],
+      "confidence": 78.992676,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 15,
+      "word_num": 2
+    },
+    {
+      "text": "..............escecceeeeeeeeeeeee1916-9270-4123",
+      "bbox": [
+        332,
+        1349,
+        986,
+        1378
+      ],
+      "confidence": 0.0,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 15,
+      "word_num": 3
+    },
+    {
+      "text": "Domain",
+      "bbox": [
+        190,
+        1408,
+        302,
+        1437
+      ],
+      "confidence": 93.06411,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 1
+    },
+    {
+      "text": "name",
+      "bbox": [
+        313,
+        1415,
+        396,
+        1437
+      ],
+      "confidence": 92.930519,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 2
+    },
+    {
+      "text": "............................setronica.com",
+      "bbox": [
+        416,
+        1408,
+        956,
+        1437
+      ],
+      "confidence": 19.511604,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 3
+    },
+    {
+      "text": "Summary",
+      "bbox": [
+        1240,
+        1430,
+        1384,
+        1466
+      ],
+      "confidence": 95.941269,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 4
+    },
+    {
+      "text": "for",
+      "bbox": [
+        1393,
+        1428,
+        1435,
+        1458
+      ],
+      "confidence": 93.179306,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 5
+    },
+    {
+      "text": "Dec",
+      "bbox": [
+        1445,
+        1430,
+        1500,
+        1458
+      ],
+      "confidence": 93.457565,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 6
+    },
+    {
+      "text": "1,",
+      "bbox": [
+        1511,
+        1430,
+        1535,
+        1464
+      ],
+      "confidence": 96.405273,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 7
+    },
+    {
+      "text": "2020",
+      "bbox": [
+        1545,
+        1430,
+        1619,
+        1458
+      ],
+      "confidence": 85.951057,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 8
+    },
+    {
+      "text": "-",
+      "bbox": [
+        1629,
+        1443,
+        1640,
+        1449
+      ],
+      "confidence": 85.951057,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 9
+    },
+    {
+      "text": "Dec",
+      "bbox": [
+        1650,
+        1430,
+        1705,
+        1458
+      ],
+      "confidence": 92.791,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 10
+    },
+    {
+      "text": "31,",
+      "bbox": [
+        1715,
+        1430,
+        1759,
+        1464
+      ],
+      "confidence": 96.521393,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 11
+    },
+    {
+      "text": "2020",
+      "bbox": [
+        1769,
+        1430,
+        1844,
+        1458
+      ],
+      "confidence": 96.521393,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 16,
+      "word_num": 12
+    },
+    {
+      "text": "Subtotal",
+      "bbox": [
+        1240,
+        1562,
+        1362,
+        1593
+      ],
+      "confidence": 96.56868,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 17,
+      "word_num": 1
+    },
+    {
+      "text": "in",
+      "bbox": [
+        1374,
+        1564,
+        1398,
+        1593
+      ],
+      "confidence": 96.733116,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 17,
+      "word_num": 2
+    },
+    {
+      "text": "USD",
+      "bbox": [
+        1409,
+        1564,
+        1470,
+        1592
+      ],
+      "confidence": 96.419502,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 17,
+      "word_num": 3
+    },
+    {
+      "text": "$546.38",
+      "bbox": [
+        2170,
+        1560,
+        2290,
+        1596
+      ],
+      "confidence": 96.745361,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 17,
+      "word_num": 4
+    },
+    {
+      "text": "State",
+      "bbox": [
+        1240,
+        1623,
+        1317,
+        1652
+      ],
+      "confidence": 96.720024,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 18,
+      "word_num": 1
+    },
+    {
+      "text": "sales",
+      "bbox": [
+        1327,
+        1622,
+        1403,
+        1652
+      ],
+      "confidence": 96.720024,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 18,
+      "word_num": 2
+    },
+    {
+      "text": "tax",
+      "bbox": [
+        1413,
+        1625,
+        1458,
+        1652
+      ],
+      "confidence": 96.961349,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 18,
+      "word_num": 3
+    },
+    {
+      "text": "(6.25%)",
+      "bbox": [
+        1468,
+        1620,
+        1579,
+        1660
+      ],
+      "confidence": 96.077881,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 18,
+      "word_num": 4
+    },
+    {
+      "text": "$27.32",
+      "bbox": [
+        2189,
+        1619,
+        2291,
+        1655
+      ],
+      "confidence": 95.474991,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 18,
+      "word_num": 5
+    },
+    {
+      "text": "Local",
+      "bbox": [
+        1242,
+        1683,
+        1319,
+        1713
+      ],
+      "confidence": 96.926079,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 19,
+      "word_num": 1
+    },
+    {
+      "text": "sales",
+      "bbox": [
+        1330,
+        1683,
+        1407,
+        1713
+      ],
+      "confidence": 95.953926,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 19,
+      "word_num": 2
+    },
+    {
+      "text": "tax",
+      "bbox": [
+        1415,
+        1686,
+        1462,
+        1713
+      ],
+      "confidence": 96.727417,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 19,
+      "word_num": 3
+    },
+    {
+      "text": "(2%)",
+      "bbox": [
+        1472,
+        1682,
+        1536,
+        1721
+      ],
+      "confidence": 96.958145,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 19,
+      "word_num": 4
+    },
+    {
+      "text": "$8.74",
+      "bbox": [
+        2208,
+        1680,
+        2291,
+        1717
+      ],
+      "confidence": 95.988739,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 19,
+      "word_num": 5
+    },
+    {
+      "text": "Total",
+      "bbox": [
+        1239,
+        1742,
+        1313,
+        1772
+      ],
+      "confidence": 96.044487,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 20,
+      "word_num": 1
+    },
+    {
+      "text": "in",
+      "bbox": [
+        1325,
+        1743,
+        1349,
+        1772
+      ],
+      "confidence": 89.944046,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 20,
+      "word_num": 2
+    },
+    {
+      "text": "USD",
+      "bbox": [
+        1359,
+        1743,
+        1421,
+        1772
+      ],
+      "confidence": 89.944046,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 20,
+      "word_num": 3
+    },
+    {
+      "text": "$582.44",
+      "bbox": [
+        2170,
+        1739,
+        2291,
+        1776
+      ],
+      "confidence": 96.63134,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 20,
+      "word_num": 4
+    },
+    {
+      "text": "You",
+      "bbox": [
+        187,
+        1923,
+        243,
+        1951
+      ],
+      "confidence": 97.010239,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 1
+    },
+    {
+      "text": "will",
+      "bbox": [
+        253,
+        1922,
+        301,
+        1951
+      ],
+      "confidence": 96.608849,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 2
+    },
+    {
+      "text": "be",
+      "bbox": [
+        312,
+        1921,
+        347,
+        1952
+      ],
+      "confidence": 96.099991,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 3
+    },
+    {
+      "text": "automatically",
+      "bbox": [
+        357,
+        1922,
+        558,
+        1959
+      ],
+      "confidence": 92.171837,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 4
+    },
+    {
+      "text": "charged",
+      "bbox": [
+        567,
+        1922,
+        686,
+        1959
+      ],
+      "confidence": 96.646042,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 5
+    },
+    {
+      "text": "for",
+      "bbox": [
+        696,
+        1921,
+        738,
+        1951
+      ],
+      "confidence": 96.518593,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 6
+    },
+    {
+      "text": "any",
+      "bbox": [
+        747,
+        1930,
+        799,
+        1959
+      ],
+      "confidence": 96.518593,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 7
+    },
+    {
+      "text": "amount",
+      "bbox": [
+        809,
+        1925,
+        921,
+        1952
+      ],
+      "confidence": 96.261169,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 8
+    },
+    {
+      "text": "due.",
+      "bbox": [
+        931,
+        1922,
+        993,
+        1952
+      ],
+      "confidence": 96.261169,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 21,
+      "word_num": 9
+    },
+    {
+      "text": "Page",
+      "bbox": [
+        2123,
+        3440,
+        2197,
+        3476
+      ],
+      "confidence": 95.885521,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 22,
+      "word_num": 1
+    },
+    {
+      "text": "1",
+      "bbox": [
+        2208,
+        3440,
+        2219,
+        3468
+      ],
+      "confidence": 93.383942,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 22,
+      "word_num": 2
+    },
+    {
+      "text": "of",
+      "bbox": [
+        2234,
+        3438,
+        2264,
+        3468
+      ],
+      "confidence": 93.383942,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 22,
+      "word_num": 3
+    },
+    {
+      "text": "2",
+      "bbox": [
+        2273,
+        3440,
+        2291,
+        3468
+      ],
+      "confidence": 95.588226,
+      "page_num": 1,
+      "block_num": 1,
+      "line_num": 22,
+      "word_num": 4
+    }
+  ]
+}

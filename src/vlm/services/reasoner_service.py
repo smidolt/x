@@ -14,6 +14,8 @@ def run(payload: Dict[str, object]) -> Dict[str, object]:
         raise ValueError("payload must include 'image_path'")
     params = payload.get("params") or {}
 
+    default_prompt = VLMConfig().prompt  # avoid using member descriptor
+
     cfg = VLMConfig(
         enabled=True,
         backend="qwen2_vl",
@@ -21,7 +23,7 @@ def run(payload: Dict[str, object]) -> Dict[str, object]:
         device=str(params.get("device", "auto")),
         max_new_tokens=int(params.get("max_new_tokens", 256)),
         temperature=float(params.get("temperature", 0.1)),
-        prompt=str(params.get("prompt", VLMConfig.prompt)),
+        prompt=str(params.get("prompt", default_prompt)),
     )
     reasoner = VLMReasoner(cfg)
     res = reasoner.run(Path(str(image_path_raw)))

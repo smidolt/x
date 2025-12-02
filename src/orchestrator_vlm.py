@@ -133,6 +133,12 @@ def run_document(
     }
     if vlm_prompt:
         reasoner_params["prompt"] = vlm_prompt
+    else:
+        try:
+            from src.config import VLMConfig
+            reasoner_params["prompt"] = VLMConfig().prompt
+        except Exception:
+            pass
     reasoner_res = run_reasoner({"image_path": str(prep["final_image"]), "params": reasoner_params})
     payload["vlm_reasoner"] = reasoner_res
 
