@@ -18,8 +18,7 @@ from src.preprocessing.services import (
     run_contrast,
     run_adaptive_binarization,
 )
-from src.ocr.service_tesseract import run as run_tesseract
-from src.vlm.services import run_blocks, run_reasoner
+from src.vlm.services import run_reasoner
 
 LOGGER = logging.getLogger(__name__)
 
@@ -63,10 +62,6 @@ def run_document(
     document: Path,
     output_root: Path,
     target_dpi: int,
-    ocr_lang: str,
-    ocr_psm: int,
-    ocr_oem: int,
-    vlm_backend_blocks: str,
     vlm_model_reasoner: str,
     vlm_device: str,
     vlm_max_tokens: int,
@@ -75,7 +70,6 @@ def run_document(
 ) -> Dict[str, object]:
     stem = document.stem
     preprocess_dir = output_root / "preprocessed"
-    ocr_dir = output_root / "ocr"
     vlm_dir = output_root / "vlm"
     vlm_dir.mkdir(parents=True, exist_ok=True)
     json_dir = output_root / "json"
@@ -93,34 +87,11 @@ def run_document(
         "elapsed_seconds": time.time() - prep_start,
     }
 
-    # OCR (for blocks)
-    LOGGER.info("OCR for blocks: %s", prep["final_image"])
-    ocr_res = run_tesseract(
-        {
-            "image_path": str(prep["final_image"]),
-            "params": {
-                "languages": ocr_lang,
-                "page_segmentation_mode": ocr_psm,
-                "oem": ocr_oem,
-            },
-            "output_dir": str(ocr_dir),
-        }
-    )
-    payload["ocr"] = {
-        "engine": ocr_res["engine"],
-        "word_count": ocr_res["word_count"],
-        "json_path": ocr_res["json_path"],
-        "elapsed_seconds": ocr_res["elapsed_seconds"],
-    }
-
-    # VLM blocks
-    LOGGER.info("VLM blocks: %s", ocr_res["json_path"])
-    blocks_path = vlm_dir / f"{stem}.blocks.json"
-    blocks = run_blocks({"ocr_json_path": ocr_res["json_path"], "output_path": str(blocks_path), "backend": vlm_backend_blocks})
+    # VLM blocks skipped (no OCR dependency)
     payload["vlm_blocks"] = {
-        "json_path": str(blocks_path),
-        "backend": blocks.get("backend"),
-        "blocks": blocks.get("blocks"),
+        "json_path": None,
+        "backend": "none",
+        "blocks": None,
     }
 
     # VLM reasoner
@@ -148,10 +119,6 @@ def main() -> None:
     parser.add_argument("--input", type=Path, default=Path("input"), help="File or directory with images.")
     parser.add_argument("--output", type=Path, default=Path("output_vlm"), help="Output root directory.")
     parser.add_argument("--target-dpi", type=int, default=300, help="Target DPI for preprocessing output.")
-    parser.add_argument("--ocr-lang", type=str, default="eng", help="Tesseract languages.")
-    parser.add_argument("--ocr-psm", type=int, default=6, help="Tesseract PSM mode.")
-    parser.add_argument("--ocr-oem", type=int, default=3, help="Tesseract OEM mode.")
-    parser.add_argument("--vlm-backend-blocks", type=str, default="heuristic", help="VLM blocks backend.")
     parser.add_argument("--vlm-model-reasoner", type=str, default="Qwen/Qwen2-VL-2B-Instruct", help="VLM reasoner model.")
     parser.add_argument("--vlm-device", type=str, default="auto", help="Device: auto|cuda|mps|cpu.")
     parser.add_argument("--vlm-max-tokens", type=int, default=256, help="Max new tokens for VLM reasoner.")
@@ -175,10 +142,6 @@ def main() -> None:
                 document=doc,
                 output_root=output_root,
                 target_dpi=args.target_dpi,
-                ocr_lang=args.ocr_lang,
-                ocr_psm=args.ocr_psm,
-                ocr_oem=args.ocr_oem,
-                vlm_backend_blocks=args.vlm_backend_blocks,
                 vlm_model_reasoner=args.vlm_model_reasoner,
                 vlm_device=args.vlm_device,
                 vlm_max_tokens=args.vlm_max_tokens,
