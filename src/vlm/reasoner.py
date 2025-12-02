@@ -1,36 +1,20 @@
-"""Vision-Language reasoner for invoices (Qwen2-VL)."""
+"""VLM reasoner using Qwen2-VL with official processing utils."""
 from __future__ import annotations
 
 import json
 import logging
-import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Any
 
-from PIL import Image
 import torch
-from transformers import AutoConfig, AutoModelForVision2Seq, AutoProcessor
+from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
+from qwen_vl_utils import process_vision_info
 
 from src.config import VLMConfig
 
 LOGGER = logging.getLogger(__name__)
-
-os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION_IMPORT", "1")
-os.environ.setdefault("FLASH_ATTENTION_SKIP", "1")
-os.environ.setdefault("USE_FLASH_ATTENTION_2", "0")
-os.environ.setdefault("USE_FLASH_ATTENTION", "0")
-os.environ.setdefault("FLASH_ATTENTION_FORCE_DISABLE", "1")
-os.environ.setdefault("ATTN_IMPLEMENTATION", "eager")
-
-
-def _resolve_device(device_arg: str) -> torch.device:
-    if device_arg == "cuda" or (device_arg == "auto" and torch.cuda.is_available()):
-        return torch.device("cuda")
-    if device_arg == "mps" or (device_arg == "auto" and torch.backends.mps.is_available()):
-        return torch.device("mps")
-    return torch.device("cpu")
 
 
 @dataclass
@@ -41,76 +25,80 @@ class VLMReasonerResult:
     error: Optional[str] = None
 
 
+def _build_prompt(custom_prompt: str | None = None) -> str:
+    base = (
+        "Return ONLY valid JSON with keys: meta, items, notes. Example: "
+        '{"meta": {"seller_name": "...", "buyer_name": "...", "invoice_number": "...", "currency": "...", '
+        '"total_net": 0, "total_vat": 0, "total_gross": 0}, '
+        '"items": [{"description": "...", "quantity": 1, "unit_price": 0, "amount": 0, "currency": "..."}], '
+        '"notes": []}'
+    )
+    return custom_prompt.strip() if custom_prompt else base
+
+
+def _prepare_inputs(image_path: Path, processor: AutoProcessor, prompt: str) -> Dict[str, Any]:
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image", "image": str(image_path)},
+                {"type": "text", "text": prompt},
+            ],
+        }
+    ]
+    text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    image_inputs, video_inputs = process_vision_info(messages)
+    inputs = processor(
+        text=[text],
+        images=image_inputs,
+        videos=video_inputs,
+        padding=True,
+        return_tensors="pt",
+    )
+    return inputs
+
+
 class VLMReasoner:
     def __init__(self, cfg: VLMConfig) -> None:
         self.cfg = cfg
-        self.device = _resolve_device(cfg.device)
-        dtype = torch.float16 if self.device.type in {"cuda", "mps"} else torch.float32
+        self.model_name = cfg.model_name
+        self.device = torch.device("cuda" if torch.cuda.is_available() and cfg.device in {"auto", "cuda"} else "cpu")
+        LOGGER.info("Loading VLM model %s on %s", self.model_name, self.device)
 
-        config = AutoConfig.from_pretrained(cfg.model_name, trust_remote_code=True)
-        if hasattr(config, "attn_implementation"):
-            config.attn_implementation = "eager"
-        for attr in ("use_flash_attention_2", "use_flash_attn", "flash_attn", "flash_attention"):
-            if hasattr(config, attr):
-                setattr(config, attr, False)
-
-        self.processor = AutoProcessor.from_pretrained(cfg.model_name, trust_remote_code=True)
-        self.model = AutoModelForVision2Seq.from_pretrained(
-            cfg.model_name,
-            trust_remote_code=True,
-            attn_implementation="eager",
-            torch_dtype=dtype,
-            config=config,
+        self.processor = AutoProcessor.from_pretrained(self.model_name)
+        self.model = Qwen2VLForConditionalGeneration.from_pretrained(
+            self.model_name,
+            torch_dtype=torch.float16 if self.device.type == "cuda" else torch.float32,
+            device_map="auto" if self.device.type == "cuda" else None,
         )
-        self.model.to(self.device, dtype=dtype)
-        self.model.eval()
-
-    def _build_inputs(self, image: Image.Image, prompt: str):
-        # Limit image size to keep token count reasonable on GPUs/CPU
-        max_side = 1400
-        if max(image.size) > max_side:
-            scale = max_side / max(image.size)
-            new_size = (int(image.width * scale), int(image.height * scale))
-            image = image.resize(new_size)
-
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image", "image": image},
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ]
-        chat_prompt = self.processor.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=False,
-        )
-        inputs = self.processor(
-            text=chat_prompt,
-            images=[image],
-            return_tensors="pt",
-        )
-        return {k: v.to(self.device) for k, v in inputs.items()}
+        if self.device.type == "cpu":
+            self.model = self.model.to(self.device)
 
     def run(self, image_path: Path) -> VLMReasonerResult:
-        image = Image.open(image_path).convert("RGB")
-        inputs = self._build_inputs(image, self.cfg.prompt.strip())
+        prompt = _build_prompt(self.cfg.prompt)
+        inputs = _prepare_inputs(image_path, self.processor, prompt)
+        inputs = inputs.to(self.device)
+
         gen_kwargs = {
             "max_new_tokens": self.cfg.max_new_tokens,
             "temperature": self.cfg.temperature,
-            "do_sample": False,
-            "use_cache": False,
+            "do_sample": True,
+            "top_p": 0.9,
+            "top_k": 50,
         }
 
         start = time.time()
-        with torch.inference_mode():
-            output_ids = self.model.generate(**inputs, **gen_kwargs)
+        with torch.no_grad():
+            generated_ids = self.model.generate(**inputs, **gen_kwargs)
         elapsed = time.time() - start
 
-        decoded = self.processor.batch_decode(output_ids, skip_special_tokens=True)
-        raw = decoded[0] if decoded else ""
+        trimmed = [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
+        output_text = self.processor.batch_decode(
+            trimmed,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False,
+        )
+        raw = output_text[0] if output_text else ""
 
         parsed = None
         error = None
