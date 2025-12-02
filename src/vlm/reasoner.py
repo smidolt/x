@@ -102,8 +102,22 @@ class VLMReasoner:
 
         parsed = None
         error = None
+        cleaned = raw.strip()
+        # Remove markdown fences if present
+        if cleaned.startswith("```"):
+            cleaned = cleaned[3:]
+            if cleaned.lower().startswith("json"):
+                cleaned = cleaned[4:]
+            cleaned = cleaned.strip()
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3].strip()
+        # Try to extract JSON substring between first { and last }
+        if "{" in cleaned and "}" in cleaned:
+            start = cleaned.find("{")
+            end = cleaned.rfind("}") + 1
+            cleaned = cleaned[start:end]
         try:
-            parsed = json.loads(raw)
+            parsed = json.loads(cleaned)
         except Exception as exc:
             error = f"Failed to parse JSON: {exc}"
         return VLMReasonerResult(raw_response=raw, elapsed_seconds=elapsed, parsed=parsed, error=error)
