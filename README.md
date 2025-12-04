@@ -1,20 +1,20 @@
-# OCR Invoice Pipeline
+# OCR / VLM Invoice Pipeline
 
-Batch pipeline that normalizes invoice scans, runs OCR (Tesseract), infers document
-structure with LayoutLM, extracts meta fields plus line items, and validates the result
-against an eSlog-lite JSON contract.
+Modular pipeline for invoices: preprocessing, OCR (classic path), layout (stub/model), parsing, validation, plus a VLM-only path. Classic runs Tesseract + layout + parsing/validation. VLM runs Qwen2-VL directly on the image (OCR/blocks optional/disabled by default in the VLM orchestrator).
 
 ## Project layout
 ```
 src/
-  preprocessing/  # resize/crop/deskew/denoise utilities
-  ocr/            # OCR engine drivers
-  layout/         # LayoutLM wiring (HuggingFace or stub)
-  parsing/meta/   # header/meta extraction
-  parsing/items/  # table & line-item parsing
-  validation/     # rule-based checks + LLM interface
-cli.py            # batch entry point
-config.yaml       # runtime configuration
+  preprocessing/   # resize/crop/deskew/denoise
+  ocr/             # OCR (Tesseract)
+  layout/          # LayoutLM wrapper (stub or HF model)
+  parsing/         # meta/items extraction
+  validation/      # rule-based + LLM stub
+  vlm/             # Qwen2-VL reasoner + optional heuristic blocks
+  orchestrator.py        # classic pipeline runner
+  orchestrator_vlm.py    # VLM-only runner (OCR disabled)
+config.yaml        # runtime configuration (classic path)
+tests/             # smoke runners for each module
 ```
 
 ## Environment setup
@@ -22,66 +22,49 @@ config.yaml       # runtime configuration
 python3 -m venv myenv1
 source myenv1/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-vlm.txt
 ```
 
 ## Models
-1. **LayoutLM (offline cache recommended)**
-   ```bash
-   hf download microsoft/layoutlmv3-base --cache-dir ~/.cache/huggingface
-   export HF_HUB_OFFLINE=1  # optional: force offline mode after the download
-   ```
-2. **LLM validation backend (optional)**
-   The default backend is `stub`. To run a tiny local transformer add to `config.yaml`:
-   ```yaml
-   llm:
-     enabled: true
-     backend: local_transformer
-     model_name: sshleifer/tiny-distilbert-base-cased-distilled-sst-2
-   ```
-   Any HuggingFace text-classification checkpoint will work.
-3. **VLM block detector (optional)**
-   - Default backend: `heuristic` (no heavy model; builds header/table/totals boxes from OCR).
-   - Qwen2-VL wiring kept for PoC, but phi3/llava are removed. Enable via `config.yaml`:
-   ```yaml
-   pipeline_mode: vlm   # or hybrid
-   vlm:
-     enabled: true
-     backend: heuristic  # leave as heuristic to avoid GPU load; qwen2_vl is optional/heavy
-   ```
+- **LayoutLM (classic)**: `microsoft/layoutlmv3-base` (stub if not available).
+- **OCR**: Tesseract (system binary).
+- **VLM**: Qwen2-VL (2B or 7B). Reasoner uses `qwen_vl_utils` + HF transformers.
+- **LLM validation**: stub by default; optional tiny HF classifier (see `validation/llm`).
 
-## Config highlights
-- `input.path` — folder with images/PDFs to process (default `data/input`).
-- `company` — expected seller identity for validation.
-- `pipeline_mode` — `classic` (no VLM blocks), `vlm` (VLM blocks only + downstream), `hybrid` (both).
-- `vlm` — VLM block detector settings; `enabled: true` to emit `vlm_blocks/*.json`.
-- `features.layoutlm_enabled`, `llm.enabled` — global toggles.
-- `preprocessing`, `ocr`, `layoutlm`, `llm` sections — fine-grained knobs for each stage.
-
-## Running the pipeline
+## Running (classic)
 ```bash
-myenv1/bin/python -m src.cli --config config.yaml --verbose
+python -m src.orchestrator \
+  --input input/google.jpg \
+  --output output/orchestrated \
+  --seller-name "Example Seller d.o.o." \
+  --seller-tax-id "SI12345678" \
+  --layout-enabled \
+  --verbose
 ```
-The CLI scans `input.path` (e.g., `x.jpg`, `google.jpg`) and produces:
-- `output/json/<name>.json` — full eSlog-lite payload.
-- `output/summary.csv` — per-file summary (`is_valid`, totals, error counts, etc.).
-- `output/preprocessed/*`, `output/ocr/*` — intermediate artifacts for debugging.
+Outputs:
+- `output/orchestrated/json/<name>.json`
+- `output/orchestrated/summary_orchestrator.json`
+- artifacts under `output/orchestrated/preprocessed/*`, `ocr/*`, `layout/*`
 
-## Verifying results
-1. Inspect `output/json/<name>.json` to review `meta`, `items`, and `validation` blocks.
-2. Any rule failures are listed in `validation.rules.errors` (missing fields, math issues,
-seller mismatch, VAT exemptions, …).
-3. Compare against the original image in `data/input` to confirm seller/buyer details,
-dates, invoice number, amounts (net/VAT/gross), and extracted line items.
+## Running (VLM-only, no OCR/blocks)
+```bash
+python -m src.orchestrator_vlm \
+  --input input/google.jpg \
+  --output output_vlm \
+  --vlm-model-reasoner Qwen/Qwen2-VL-7B-Instruct \
+  --vlm-max-tokens 256 \
+  --vlm-temperature 0.2
+```
+Output: `output_vlm/json/<name>.vlm.json` and `summary_vlm_orchestrator.json`.
 
-## Adding invoices
-Drop new files or folders under `data/input` and rerun the CLI. Every file is processed
-recursively; results land in `output/json` and the summary CSV.
+## Smoke tests
+- Preproc: `PYTHONPATH=. python tests/preprocessing.py --image input/google.jpg --output output/check_steps_single --target-dpi 300`
+- OCR: `PYTHONPATH=. python tests/ocr_runner.py ...`
+- Layout: `PYTHONPATH=. python tests/layout_runner.py ...`
+- Parsing: `PYTHONPATH=. python tests/parsing_runner.py ...`
+- Validation: `PYTHONPATH=. python tests/validation_runner.py ...`
+- VLM: `PYTHONPATH=. python tests/vlm_runner.py --image input/google.jpg ...`
 
-## Troubleshooting
-- **LayoutLM fails to load** — ensure the checkpoint is cached (`hf download`) or unset
-  `HF_HUB_OFFLINE` if network access is required. The pipeline automatically falls back
-  to the stub backend when the model cannot be loaded.
-- **Tesseract missing** — install it system-wide (macOS: `brew install tesseract`).
-- **Need more logs** — keep `--verbose` enabled or toggle individual steps in
-  `config.yaml`.
+## Notes
+- Classic path uses `config.yaml` toggles (layout/llm/etc.).
+- VLM path bypasses OCR/blocks by default to reduce GPU load; switch model name if you want 7B and have enough memory.

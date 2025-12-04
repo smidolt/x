@@ -1,26 +1,15 @@
-# VLM (blocks + Qwen2-VL reasoner)
+# VLM
 
-Blocks (heuristic) CLI:
+Qwen2-VL reasoner (official HF/qwen_vl_utils flow) + optional heuristic blocks. Default VLM orchestrator uses preprocess → reasoner (OCR disabled).
+
+Orchestrator run from repo root (OCR disabled):
 ```bash
-python -m src.vlm.main blocks --ocr-json output/ocr_single/google__normalize_to_a4.ocr.json --output output/vlm_blocks/google.blocks.json
+PYTHONPATH=. python -m src.orchestrator_vlm \
+  --input input/google.jpg \
+  --output output_vlm \
+  --vlm-model-reasoner Qwen/Qwen2-VL-2B-Instruct \
+  --vlm-max-tokens 256 \
+  --vlm-temperature 0.2
 ```
 
-Reasoner CLI:
-```bash
-python -m src.vlm.main reasoner \
-  --image output/check_steps_single/google__normalize_to_a4.png \
-  --model-name Qwen/Qwen2-VL-2B-Instruct \
-  --device auto --max-tokens 256 --temperature 0.1
-```
-
-Services (Python):
-```python
-from src.vlm.services import run_blocks, run_reasoner
-blocks = run_blocks({"ocr_json_path": "...", "output_path": "output/vlm_blocks/page.blocks.json"})
-res = run_reasoner({"image_path": "...", "params": {"model_name": "...", "device": "auto"}})
-```
-
-Sample blocks output snippet:
-```
-{"backend": "heuristic", "blocks": [{"kind": "header", "bbox": [...]}, ...]}
-```
+Smoke test: `tests/vlm_runner.py` (reasoner only, optional blocks if OCR JSON provided). Output includes raw_response, parsed JSON (if valid), and timing.

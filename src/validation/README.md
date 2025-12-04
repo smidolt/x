@@ -1,8 +1,10 @@
-# Validation (rules + LLM stub)
+# Validation
 
-CLI:
+Rule-based checks (+ LLM stub) on meta/items JSON: required fields, math sums, seller identity, VAT exemption consistency.
+
+Run from repo root:
 ```bash
-python -m src.validation.main \
+PYTHONPATH=. python -m src.validation.main \
   --meta-json output/parse_single/meta.json \
   --items-json output/parse_single/items.json \
   --seller-name "Example Seller d.o.o." \
@@ -10,14 +12,4 @@ python -m src.validation.main \
   --output output/parse_single/validation.json
 ```
 
-Services (Python):
-```python
-from src.validation.services import run_rules, run_validation
-rules = run_rules({"meta": {...}, "items": {...}, "seller_name": "...", "seller_tax_id": "..."})
-combined = run_validation({"meta": {...}, "items": {...}, "seller_name": "...", "seller_tax_id": "..."})
-```
-
-Sample output snippet:
-```
-{"rules": {"is_valid": true, "errors": [], "warnings": []}, "llm": {...}}
-```
+Smoke test: `tests/validation_runner.py`. Output JSON: rules {is_valid, errors, warnings} and llm stub block.

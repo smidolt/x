@@ -1,17 +1,10 @@
-# Preprocessing (modular)
+# Preprocessing
 
-Run all steps independently (each takes the original image, no chaining):
+Per-step image cleanup: grayscale, crop, deskew, resize, normalize_to_a4, denoise, contrast, adaptive binarization. Each step can be called independently; CLI runs them all on the same source.
 
+Run from repo root:
 ```bash
-python -m src.main --image input/x.jpg --output output/check_steps_single --target-dpi 300
+PYTHONPATH=. python tests/preprocessing.py --image input/google.jpg --output output/check_steps_single --target-dpi 300
 ```
 
-Example outputs:
-- `output/check_steps_single/x__grayscale.png`
-- `output/check_steps_single/x__crop_to_content.png`
-- `output/check_steps_single/x__deskew.png` (stays straight on flat pages)
-
-Sample deskew metadata:
-```
-deskew {'step': 'deskew', 'applied': False, 'warning': None, 'elapsed_seconds': 0.10, 'output_path': 'output/check_steps_single/x__deskew.png'}
-```
+Smoke test: `tests/preprocessing.py`. Outputs are individual PNGs per step in the chosen `--output` dir.

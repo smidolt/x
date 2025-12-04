@@ -55,8 +55,9 @@ def run_classic(
 
     meta = meta_parser.run(ocr_json, layout_data)
     items = items_parser.run(ocr_json, layout_data)
-    validation = rule_validator.run(meta.raw, items.__dict__)
-    llm_validation = llm_backend.validate(meta.raw, items.__dict__)
+    items_dict = items.__dict__ if hasattr(items, "__dict__") else {"rows": getattr(items, "rows", [])}
+    validation = rule_validator.run(meta.raw, items_dict)
+    llm_validation = llm_backend.validate(meta.raw, items_dict)
 
     return {
         "meta": meta.raw,
