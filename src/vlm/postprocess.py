@@ -45,8 +45,9 @@ def parse_raw_response(raw: str) -> Tuple[Dict[str, Any] | None, str | None]:
 
 
 def normalize_payload(parsed: Dict[str, Any], currency_hint: str | None = None) -> Tuple[Dict[str, Any], List[str]]:
-    meta_raw = parsed.get("meta") or parsed
-    items_raw = parsed.get("items") or parsed.get("lines") or []
+    mapped = _map_common_fields(parsed)
+    meta_raw = mapped.get("meta") or parsed.get("meta") or parsed
+    items_raw = mapped.get("items") or parsed.get("items") or parsed.get("lines") or []
     if isinstance(items_raw, dict) and "rows" in items_raw:
         items_raw = items_raw.get("rows", [])
 
@@ -90,3 +91,154 @@ def _hydrate_totals(meta: Dict[str, Any], items: Dict[str, Any]) -> Tuple[Dict[s
             if len(currencies) == 1:
                 meta["currency"] = currencies.pop()
     return meta, items
+
+
+# -----------------------------------------------------------
+# Mapping helpers: adapt common nested invoice shapes into meta/items
+
+
+def _map_common_fields(parsed: Dict[str, Any]) -> Dict[str, Any]:
+    mapped: Dict[str, Any] = {"meta": {}, "items": []}
+    currency_hint = None
+
+    invoice = parsed.get("invoice", {}) if isinstance(parsed.get("invoice"), dict) else {}
+    company = parsed.get("company", {}) if isinstance(parsed.get("company"), dict) else {}
+    billing_address = parsed.get("billing_address", {}) if isinstance(parsed.get("billing_address"), dict) else {}
+    summary = parsed.get("summary", {}) if isinstance(parsed.get("summary"), dict) else {}
+    taxes = parsed.get("taxes", {}) if isinstance(parsed.get("taxes"), dict) else {}
+    google_ws = parsed.get("googleWorkspace", {}) if isinstance(parsed.get("googleWorkspace"), dict) else {}
+    details = parsed.get("details", {}) if isinstance(parsed.get("details"), dict) else {}
+
+    meta = {}
+    # Invoice basics
+    meta["invoice_number"] = invoice.get("number") or invoice.get("id")
+    meta["issue_date"] = invoice.get("date") or invoice.get("issue_date")
+    meta["supply_date"] = invoice.get("supply_date")
+    # Totals from invoice/summary/google_ws/details
+    totals_candidates = [
+        invoice.get("total"),
+        invoice.get("total_amount_due"),
+        summary.get("total"),
+        summary.get("total_amount_due"),
+        google_ws.get("total"),
+        google_ws.get("total_in_usd"),
+    ]
+    total_gross, currency_from_gross = _parse_first_amount(totals_candidates)
+    meta["total_gross"] = total_gross
+    currency_hint = currency_hint or currency_from_gross
+
+    subtotal, currency_from_sub = _parse_first_amount(
+        [
+            summary.get("subtotal"),
+            summary.get("subtotal_in_usd"),
+            google_ws.get("subtotal"),
+            google_ws.get("subtotal_in_usd"),
+        ]
+    )
+    meta["total_net"] = subtotal
+    currency_hint = currency_hint or currency_from_sub
+
+    vat_total, currency_from_tax = _parse_first_amount(
+        [
+            taxes.get("sales_tax"),
+            summary.get("stateSalesTax"),
+            summary.get("localSalesTax"),
+            summary.get("state_sales_tax"),
+            summary.get("local_sales_tax"),
+        ]
+    )
+    meta["total_vat"] = vat_total
+    currency_hint = currency_hint or currency_from_tax
+
+    # Seller info
+    if company:
+        meta["seller_name"] = company.get("name")
+        meta["seller_tax_id"] = company.get("tax_id")
+        address_parts = [
+            company.get("address"),
+            company.get("city"),
+            company.get("state"),
+            company.get("zip"),
+            company.get("country"),
+        ]
+        meta["seller_address"] = ", ".join([str(p) for p in address_parts if p])
+
+    # Buyer info
+    if billing_address:
+        meta["buyer_name"] = billing_address.get("name") or billing_address.get("company")
+        address_parts = [
+            billing_address.get("street"),
+            billing_address.get("address"),
+            billing_address.get("city"),
+            billing_address.get("state"),
+            billing_address.get("zip"),
+            billing_address.get("country"),
+        ]
+        meta["buyer_address"] = ", ".join([str(p) for p in address_parts if p])
+
+    # Items: products list
+    items_rows: List[Dict[str, Any]] = []
+    products = parsed.get("products") or parsed.get("items") or []
+    if isinstance(products, list):
+        for row in products:
+            if not isinstance(row, dict):
+                continue
+            unit_price, cur_from_unit = _parse_first_amount([row.get("unit_price")])
+            total_price, cur_from_total = _parse_first_amount([row.get("total_price"), row.get("amount")])
+            currency_hint = currency_hint or cur_from_total or cur_from_unit
+            items_rows.append(
+                {
+                    "description": row.get("description") or row.get("product"),
+                    "quantity": row.get("quantity"),
+                    "unit_price": unit_price,
+                    "net_amount": total_price,
+                    "vat_rate": None,
+                    "vat_amount": None,
+                    "gross_amount": total_price,
+                    "currency": cur_from_total or cur_from_unit,
+                }
+            )
+
+    # Fallback: if summary has subtotal/taxes/total, synthesize a single item
+    if not items_rows and subtotal is not None:
+        items_rows.append(
+            {
+                "description": "Invoice total",
+                "quantity": 1,
+                "unit_price": subtotal,
+                "net_amount": subtotal,
+                "vat_rate": None,
+                "vat_amount": vat_total,
+                "gross_amount": total_gross or subtotal + (vat_total or 0),
+                "currency": currency_hint,
+            }
+        )
+
+    mapped["meta"] = meta
+    mapped["items"] = items_rows
+    if currency_hint:
+        mapped.setdefault("meta", {})["currency"] = currency_hint
+    return mapped
+
+
+def _parse_first_amount(candidates: List[Any]) -> Tuple[float | None, str | None]:
+    for value in candidates:
+        if value is None:
+            continue
+        if isinstance(value, (int, float)):
+            return float(value), None
+        if isinstance(value, str):
+            text = value.strip()
+            currency = None
+            if "$" in text:
+                currency = "USD"
+            elif "€" in text:
+                currency = "EUR"
+            elif "£" in text:
+                currency = "GBP"
+            try:
+                cleaned = text.replace("$", "").replace("€", "").replace("£", "").replace(",", "").strip()
+                return float(cleaned), currency
+            except ValueError:
+                continue
+    return None, None
