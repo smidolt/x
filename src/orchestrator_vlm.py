@@ -19,6 +19,8 @@ from src.preprocessing.services import (
     run_adaptive_binarization,
 )
 from src.vlm.services import run_reasoner
+from src.vlm.postprocess import parse_raw_response, normalize_payload
+from src.vlm.validation import VLMValidator
 
 LOGGER = logging.getLogger(__name__)
 
@@ -67,6 +69,10 @@ def run_document(
     vlm_max_tokens: int,
     vlm_temperature: float,
     vlm_prompt: Optional[str],
+    seller_name: str,
+    seller_tax_id: str,
+    currency_hint: Optional[str],
+    amount_tolerance: float,
 ) -> Dict[str, object]:
     stem = document.stem
     preprocess_dir = output_root / "preprocessed"
@@ -74,6 +80,12 @@ def run_document(
     vlm_dir.mkdir(parents=True, exist_ok=True)
     json_dir = output_root / "json"
     json_dir.mkdir(parents=True, exist_ok=True)
+    raw_dir = output_root / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    parsed_dir = output_root / "parsed"
+    parsed_dir.mkdir(parents=True, exist_ok=True)
+    validation_dir = output_root / "validation"
+    validation_dir.mkdir(parents=True, exist_ok=True)
 
     payload: Dict[str, object] = {"file_name": document.name}
 
@@ -106,6 +118,71 @@ def run_document(
     reasoner_res = run_reasoner({"image_path": str(prep["final_image"]), "params": reasoner_params})
     payload["vlm_reasoner"] = reasoner_res
 
+    # Persist raw response
+    raw_path = raw_dir / f"{stem}.txt"
+    raw_text = reasoner_res.get("raw_response") or ""
+    raw_path.write_text(raw_text, encoding="utf-8")
+
+    # Postprocess: parse + normalize
+    parsed_payload, parse_error = parse_raw_response(raw_text)
+    normalized = {"meta": {}, "items": {}}
+    schema_errors: List[str] = []
+    if parsed_payload is not None:
+        normalized, schema_errors = normalize_payload(parsed_payload, currency_hint=currency_hint)
+    parsed_path = parsed_dir / f"{stem}.json"
+    parsed_path.write_text(json.dumps(normalized, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # Business validation
+    required_fields = [
+        "seller_name",
+        "seller_address",
+        "buyer_name",
+        "buyer_address",
+        "seller_tax_id",
+        "invoice_number",
+        "issue_date",
+        "supply_date",
+        "currency",
+        "total_net",
+        "total_vat",
+        "total_gross",
+    ]
+    validator = VLMValidator(
+        required_fields=required_fields,
+        seller_name=seller_name,
+        seller_tax_id=seller_tax_id,
+        amount_tolerance=amount_tolerance,
+    )
+    validation_res = validator.run(normalized.get("meta", {}), normalized.get("items", {}))
+    if parse_error:
+        validation_res.errors.append(f"parse_error: {parse_error}")
+    validation_res.errors.extend(schema_errors)
+
+    validation_payload = {
+        "rules": {
+            "errors": validation_res.errors,
+            "warnings": validation_res.warnings,
+            "is_valid": validation_res.is_valid,
+        },
+        "llm": {"backend": "stub", "notes": "LLM validation not configured", "issues": []},
+    }
+    validation_path = validation_dir / f"{stem}.json"
+    validation_path.write_text(json.dumps(validation_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # Artifacts block
+    artifacts = {
+        "preprocessed_path": str(prep["final_image"]),
+        "raw_vlm_response": str(raw_path),
+        "normalized_vlm_json": str(parsed_path),
+        "validation_report": str(validation_path),
+    }
+
+    # Assemble final payload for this document
+    payload["meta"] = normalized.get("meta", {})
+    payload["items"] = normalized.get("items", {})
+    payload["validation"] = validation_payload
+    payload["artifacts"] = artifacts
+
     # Persist combined JSON
     output_json_path = json_dir / f"{stem}.vlm.json"
     output_json_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -124,6 +201,10 @@ def main() -> None:
     parser.add_argument("--vlm-max-tokens", type=int, default=256, help="Max new tokens for VLM reasoner.")
     parser.add_argument("--vlm-temperature", type=float, default=0.1, help="Temperature for VLM reasoner.")
     parser.add_argument("--vlm-prompt", type=str, default=None, help="Custom prompt for VLM reasoner.")
+    parser.add_argument("--seller-name", type=str, default="", help="Expected seller name for validation.")
+    parser.add_argument("--seller-tax-id", type=str, default="", help="Expected seller tax ID for validation.")
+    parser.add_argument("--currency-hint", type=str, default=None, help="Preferred currency code (ISO) when missing.")
+    parser.add_argument("--amount-tolerance", type=float, default=0.5, help="Tolerance for sum checks.")
     parser.add_argument("--verbose", action="store_true", help="Verbose logging.")
     args = parser.parse_args()
 
@@ -147,6 +228,10 @@ def main() -> None:
                 vlm_max_tokens=args.vlm_max_tokens,
                 vlm_temperature=args.vlm_temperature,
                 vlm_prompt=args.vlm_prompt,
+                seller_name=args.seller_name,
+                seller_tax_id=args.seller_tax_id,
+                currency_hint=args.currency_hint,
+                amount_tolerance=args.amount_tolerance,
             )
         )
 
