@@ -159,16 +159,24 @@ def normalize_items(raw: Any, currency_hint: str | None = None) -> Dict[str, Any
         if not isinstance(row, dict):
             continue
         currency = normalize_currency(row.get("currency"), hint=currency_hint)
+        amount = normalize_number(row.get("amount"))
+        net_amount = normalize_number(row.get("net_amount"))
+        gross_amount = normalize_number(row.get("gross_amount"))
+        # Fallback: use amount if explicit net/gross are missing
+        if net_amount is None and amount is not None:
+            net_amount = amount
+        if gross_amount is None and amount is not None:
+            gross_amount = amount
         rows_out.append(
             {
                 "description": _str(row.get("description")),
                 "quantity": normalize_number(row.get("quantity")),
                 "unit_of_measure": _str(row.get("unit_of_measure")),
                 "unit_price": normalize_number(row.get("unit_price")),
-                "net_amount": normalize_number(row.get("net_amount")),
+                "net_amount": net_amount,
                 "vat_rate": normalize_number(row.get("vat_rate")),
                 "vat_amount": normalize_number(row.get("vat_amount")),
-                "gross_amount": normalize_number(row.get("gross_amount")),
+                "gross_amount": gross_amount,
                 "currency": currency,
             }
         )

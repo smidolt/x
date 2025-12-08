@@ -61,14 +61,29 @@ def normalize_payload(parsed: Dict[str, Any], currency_hint: str | None = None) 
 def _hydrate_totals(meta: Dict[str, Any], items: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     rows = items.get("rows", []) if isinstance(items, dict) else []
     if rows:
-        net_sum = sum(row.get("net_amount") or 0 for row in rows if isinstance(row, dict))
-        gross_sum = sum(row.get("gross_amount") or 0 for row in rows if isinstance(row, dict))
-        vat_sum = sum(row.get("vat_amount") or 0 for row in rows if isinstance(row, dict))
-        if meta.get("total_net") is None:
+        net_sum = 0.0
+        gross_sum = 0.0
+        vat_sum = 0.0
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            net = row.get("net_amount")
+            gross = row.get("gross_amount")
+            amt = row.get("amount") if "amount" in row else None
+            vat = row.get("vat_amount")
+            if net is None and amt is not None:
+                net = amt
+            if gross is None and amt is not None:
+                gross = amt
+            net_sum += net or 0
+            gross_sum += gross or 0
+            vat_sum += vat or 0
+
+        if meta.get("total_net") is None or meta.get("total_net") == 0:
             meta["total_net"] = net_sum
-        if meta.get("total_vat") is None and vat_sum:
+        if (meta.get("total_vat") is None or meta.get("total_vat") == 0) and vat_sum:
             meta["total_vat"] = vat_sum
-        if meta.get("total_gross") is None:
+        if meta.get("total_gross") is None or meta.get("total_gross") == 0:
             meta["total_gross"] = gross_sum or ((meta.get("total_net") or 0) + (meta.get("total_vat") or 0))
         if meta.get("currency") is None:
             currencies = {row.get("currency") for row in rows if row.get("currency")}
