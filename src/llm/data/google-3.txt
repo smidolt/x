@@ -1,0 +1,37 @@
+```json
+{
+  "invoice": {
+    "number": "3841957944",
+    "date": "Dec 31, 2020",
+    "billing_id": "1916-9270-4123",
+    "domain_name": "setronica.com",
+    "total_in_usd": 582.44
+  },
+  "details": {
+    "google_workspace": {
+      "subtotal_in_usd": 546.38,
+      "state_sales_tax": 27.32,
+      "local_sales_tax": 8.74,
+      "total_in_usd": 582.44
+    }
+  },
+  "billing_address": {
+    "name": "Yuliya Malinina",
+    "company": "Samethinkers Inc.",
+    "address": "211 East 7th Street, Suite 620",
+    "city": "Austin",
+    "state": "TX",
+    "zip": "78701",
+    "country": "United States"
+  },
+  "company": {
+    "name": "Google LLC",
+    "address": "1600 Amphitheatre Pkwy",
+    "city": "Mountain View",
+    "state": "CA",
+    "zip": "94043",
+    "country": "United States",
+    "tax_id": "77-0493581"
+  }
+}
+```

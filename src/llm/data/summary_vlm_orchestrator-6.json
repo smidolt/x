@@ -1,0 +1,114 @@
+[
+  {
+    "file_name": "Pager.jpg",
+    "preprocessing": {
+      "steps": [
+        {
+          "step": "grayscale",
+          "applied": true,
+          "warning": null,
+          "elapsed_seconds": 0.0021740490001320723,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale.png"
+        },
+        {
+          "step": "crop_to_content",
+          "applied": true,
+          "warning": null,
+          "elapsed_seconds": 0.005854879000025903,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content.png"
+        },
+        {
+          "step": "deskew",
+          "applied": false,
+          "warning": null,
+          "elapsed_seconds": 0.5678429580000284,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew.png"
+        },
+        {
+          "step": "resize",
+          "applied": false,
+          "warning": null,
+          "elapsed_seconds": 1.0761000112324837e-05,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew__resize.png"
+        },
+        {
+          "step": "normalize_to_a4",
+          "applied": true,
+          "warning": null,
+          "elapsed_seconds": 0.10769745299990063,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew__resize__normalize_to_a4.png"
+        },
+        {
+          "step": "denoise",
+          "applied": true,
+          "warning": null,
+          "elapsed_seconds": 1.6801280539998515,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew__resize__normalize_to_a4__denoise.png"
+        },
+        {
+          "step": "contrast",
+          "applied": true,
+          "warning": null,
+          "elapsed_seconds": 0.13554568900008235,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew__resize__normalize_to_a4__denoise__contrast.png"
+        },
+        {
+          "step": "adaptive_binarization",
+          "applied": true,
+          "warning": null,
+          "elapsed_seconds": 0.1312958799999251,
+          "output_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew__resize__normalize_to_a4__denoise__contrast__adaptive_binarization.png"
+        }
+      ],
+      "final_image": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew__resize__normalize_to_a4__denoise__contrast__adaptive_binarization.png",
+      "elapsed_seconds": 4.678050518035889
+    },
+    "vlm_blocks": {
+      "json_path": null,
+      "backend": "none",
+      "blocks": null
+    },
+    "vlm_reasoner": {
+      "raw_response": "```json\n{\n  \"company\": {\n    \"name\": \"PagerDuty\",\n    \"address\": \"600 Townsend St. Suite 125, San Francisco, CA 94103\"\n  },\n  \"invoice\": {\n    \"number\": \"INV00569471\",\n    \"issue_date\": \"12/31/2020\",\n    \"total_amount_due\": \"$66.44\"\n  },\n  \"billing_address\": {\n    \"name\": \"Setronica\",\n    \"address\": \"543 KIRKHAM LN, LEAGUE CITY, Texas 77573-6537, United States\",\n    \"email\": \"pagerduty@setronica.com\"\n  },\n  \"sold_to\": {\n    \"name\": \"Setronica\",\n    \"address\": \"543 KIRKHAM LN, LEAGUE CITY, Texas 77573-6537, United States\"\n  },\n  \"products\": [\n    {\n      \"name\": \"Professional\",\n      \"description\": \"Full User Fee -- Proration\",\n      \"quantity\": 4,\n      \"unit_price\": \"$23.00\",\n      \"service_period\": \"12/11/2020-12/31/2020\",\n      \"total_price\": \"$62.32\"\n    }\n  ],\n  \"taxes\": [\n    {\n      \"name\": \"Sales Tax\",\n      \"amount\": \"$4.12\"\n    }\n  ],\n  \"total\": \"$66.44\",\n  \"credits\": {\n    \"applied\": \"$0.00\"\n  },\n  \"payments\": {\n    \"applied\": \"$0.00\"\n  },\n",
+      "parsed": null,
+      "error": "Failed to parse JSON: Expecting ',' delimiter: line 42 column 4 (char 955)",
+      "elapsed_seconds": 22.497727632522583
+    },
+    "meta": {},
+    "items": {},
+    "validation": {
+      "rules": {
+        "errors": [
+          "Missing required field: seller_name",
+          "Missing required field: seller_address",
+          "Missing required field: buyer_name",
+          "Missing required field: buyer_address",
+          "Missing required field: seller_tax_id",
+          "Missing required field: invoice_number",
+          "Missing required field: issue_date",
+          "Missing required field: supply_date",
+          "Missing required field: currency",
+          "Missing required field: total_net",
+          "Missing required field: total_vat",
+          "Missing required field: total_gross",
+          "No item rows detected",
+          "parse_error: Failed to parse JSON substring: Expecting ',' delimiter: line 42 column 4 (char 955)"
+        ],
+        "warnings": [],
+        "is_valid": false
+      },
+      "llm": {
+        "backend": "stub",
+        "notes": "LLM validation not configured",
+        "issues": []
+      }
+    },
+    "artifacts": {
+      "preprocessed_path": "output_vlm/preprocessed/Pager__grayscale__crop_to_content__deskew__resize__normalize_to_a4__denoise__contrast__adaptive_binarization.png",
+      "raw_vlm_response": "output_vlm/raw/Pager.txt",
+      "normalized_vlm_json": "output_vlm/parsed/Pager.json",
+      "validation_report": "output_vlm/validation/Pager.json"
+    },
+    "output_json": "output_vlm/json/Pager.vlm.json"
+  }
+]

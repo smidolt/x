@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "seller_name": "Google LLC",
+    "seller_address": "1600 Amphitheatre Pkwy, Mountain View, CA 94043, United States",
+    "seller_tax_id": "77-0493581",
+    "buyer_name": "Yuliya Malinina; Samethinkers Inc.",
+    "buyer_address": "211 East 7th Street, Suite 620, Austin, TX 78701, United States",
+    "invoice_number": "3841957944",
+    "issue_date": "2020-12-31",
+    "supply_date": "2020-12-31",
+    "currency": "USD",
+    "total_net": 546.38,
+    "total_vat": 36.06,
+    "total_gross": 582.44,
+    "vat_rate": 6.25,
+    "notes": []
+  },
+  "items": {
+    "rows": [
+      {
+        "description": "Google Workspace (Dec 1–31, 2020)",
+        "quantity": 1,
+        "unit_of_measure": null,
+        "unit_price": 546.38,
+        "net_amount": 546.38,
+        "vat_rate": 6.25,
+        "vat_amount": 36.06,
+        "gross_amount": 582.44,
+        "currency": "USD"
+      }
+    ]
+  }
+}
